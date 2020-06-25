@@ -1,0 +1,12 @@
+---
+tabname: recipes
+tabfields: name string, prep_time integer, cook_time, yield string, ingredients
+  string, directions string, rating integer
+fields:
+  name: PBJ
+  prep_time: 5
+  cook_time: 0
+  yield: '1'
+  ingredients: "[('Bread',473832,2),('Peanut Butter',547673,2),('Jam',389529,2)]"
+  directions: "['1. get ingredients','2. spread PB','3. spread Jam','4. Eat']"
+  rating: 5
