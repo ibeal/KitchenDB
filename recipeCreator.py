@@ -1,5 +1,6 @@
 from libs import *
 from config import *
+global dataFields
 
 class recipe:
     def __init__(self, data=''):
@@ -9,23 +10,37 @@ class recipe:
             self.edit(data)
 
     def __str__(self):
+        ingr = ''
+        dir = ''
         info = f'{self.name}\nYields: {self.yieldAmnt} | Category: {self.category} | Rating: {self.rating}\n' +\
             f'Time - Prep: {self.prep_time} | Cook: {self.cook_time} | Total: {self.prep_time + self.cook_time}'
-        ingr = str([f'{food}: {amount}\n' for food, id, amount in self.ingredients])
-        dir = str([f'{direction}\n' for direction in self.directions])
+        for food, id, amount in self.ingredients:
+            ingr += f'{food}: {amount}\n'
+        for direction in self.directions:
+            dir += f'{direction}\n'
 
-        return f'{info}\n{ingr}\n{dir}'
+        return f'{info}\n\n{ingr}\n{dir}'
 
     def edit(self, data):
         """Function that builds the recipe object from DB entry"""
+        # self.fields = {}
+        # for field in dataFields:
+        #     name, type = field.split(' ')
+        #     if type == 'integer':
+        #         pass
+        #     elif type == 'string':
+        #         pass
+        #     elif type == 'list':
+        #         pass
+        #     self.fields[k] = data[k]
         self.name = data[0]
         self.prep_time = data[1]
         self.cook_time = data[2]
         self.yieldAmnt = data[3]
         self.category = data[4]
         self.rating = data[5]
-        self.ingredients = list(data[6]) # TODO: correctly parse the string to a list here
-        self.directions = list(data[7])
+        self.ingredients = interp(data[6])
+        self.directions = interp(data[7])
 
 
     def new(self):
@@ -45,8 +60,12 @@ class recipe:
 
     def outputToYaml(self, filename='recipe.yaml'):
         """function that generates a recipe.yaml file from given parameters"""
+        tabfields = ''
+        for v in dataFields:
+            tabfields += f'{v}, '
+        tabfields = tabfields[:-2]
         yam = {'tabname': 'recipes', \
-                'tabfields': 'name string, prep_time integer, cook_time, yield string, category string, rating integer, ingredients string, directions string',\
+                'tabfields': tabfields,\
                   'fields': [self.name, self.prep_time, self.cook_time, self.yieldAmnt, self.category, self.rating, str(self.ingredients), str(self.directions)]
                 }
         with open(filename,'a') as f:
@@ -146,6 +165,7 @@ class recipe:
                 dirNum += 1
                 logger.debug(f'Successfully added "{inp}" to directions')
         return directions
+
 
 if __name__ == "__main__":
     # with open('recipes.yaml') as f:

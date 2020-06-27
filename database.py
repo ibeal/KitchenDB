@@ -1,5 +1,6 @@
 from config import *
 from recipeCreator import *
+global dataFields
 
 class database:
     def __init__(self):
@@ -37,8 +38,12 @@ class database:
 
     def saveRecipe(self, rec):
         table = 'recipes'
-        tabfields = 'name string, prep_time integer, cook_time, yield string, category string,\
-          rating integer, ingredients string, directions string'
+        # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
+        #   rating integer, ingredients string, directions string'
+        tabfields = ''
+        for v in dataFields:
+            tabfields += f'{v}, '
+        tabfields = tabfields[:-2]
         query = 'create table if not exists ' + table + ' (' + tabfields + ')'
 
         logger.debug('executing: ' + query)

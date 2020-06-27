@@ -7,6 +7,9 @@ APOSREPLACE = ';:'
 findApos = re.compile("'")
 fillApos = re.compile(APOSREPLACE)
 logger.debug('funcs imported')
+global dataFields
+dataFields = ['name string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
+  'rating integer', 'ingredients list', 'directions list']
 
 def aposFilter(dirty):
     """A function that takes a string and replaces all apostrophes with the global
@@ -25,3 +28,39 @@ def aposFiller(clean):
         return clean
     dirty = fillApos.sub("'", clean)
     return dirty
+
+def topLevelSplit(line):
+    splits = [-1]
+    index = 0
+    while index < len(line):
+        if line[index] == '[':
+            index = line.find(']', index+1)
+        elif line[index] == '(':
+            index = line.find(')', index+1)
+        elif line[index] == ',':
+            splits.append(index)
+        index += 1
+    lines = []
+    splits.append(len(line))
+    for index in range(len(splits) - 1):
+        lines.append(line[splits[index]+1:splits[index+1]])
+    logger.debug(f'Split returns: {lines}')
+    return lines
+
+def interp(line):
+    last = len(line)
+    for index in range(last):
+        if line[index] == '[':
+            return [interp(item) for item in topLevelSplit(line[index+1:line.find(']')])]
+        elif line[index] == '(':
+            return tuple(interp(item) for item in topLevelSplit(line[index+1:line.find(')')]))
+        elif line[index] == "'":
+            return str(line[index+1:line.find("'", index+1)])
+        elif line[index] == '"':
+            return str(line[index+1:line.find('"', index+1)])
+        elif line[index].isdigit():
+            start = index
+            while index < last and line[index].isdigit():
+                index+=1
+            return int(line[start:index+1])
+    return ''

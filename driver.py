@@ -30,12 +30,16 @@ def main(**kwargs):
         elif inp == 'search':
             query = input('Database Search: ')
             res = db.search(query)
-            for i, row in enumerate(res, 1):
-                print(recipe(row))
-                print(i, row)
+            if len(res) < 1:
+                print('No Results Found\n')
+            else:
+                for i, row in enumerate(res, 1):
+                    print(f'{i})')
+                    print(recipe(row))
+                    # print(i, row)
 
-            pick = int(input('\nWhich recipe would you like to look at? (number) '))
-            rc = recipe(res[pick-1])
+                pick = int(input('\nWhich recipe would you like to look at? (number) '))
+                rc = recipe(res[pick-1])
         else:
             print('Command not recognized. Type "help" for commands, or "quit" to quit')
             print()
