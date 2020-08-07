@@ -23,6 +23,19 @@ class database:
     def showAll(self):
         self.result('select * from recipes')
 
+    def recipes(self, first=0, last=None, count=1):
+        """A function that returns a custom number of rows from recipes
+            Input: first - int, number of the first row, default: 0
+                   last - int, number of the last row
+                   count - int, number of rows to get, default: 1
+                   NOTE: if last is specified, count is overwritten
+
+            Output: array of recipe rows, with length of count"""
+        if last:
+            count = last - first
+        res = self.cur.execute(f"SELECT * FROM recipes LIMIT {first}, {count}")
+        return [i for i in res]
+
     def search(self, query):
         res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
         return [i for i in res]
@@ -82,3 +95,7 @@ class database:
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
+
+if __name__ == '__main__':
+    # Testing
+    db = database()

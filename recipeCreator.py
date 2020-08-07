@@ -3,8 +3,8 @@ from config import *
 global dataFields
 
 class recipe:
-    def __init__(self, data=''):
-        if data == '':
+    def __init__(self, data=None):
+        if not data:
             self.new()
         else:
             self.edit(data)
