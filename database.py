@@ -40,6 +40,10 @@ class database:
         res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
         return [i for i in res]
 
+    def getColumns(self, table):
+        res = self.cur.execute(f"SELECT * FROM {table}")
+        return [info[0] for info in res.description]
+
     def addNew(self):
         rec = recipe()
         self.cur.execute('drop table if exists recipes')
@@ -62,7 +66,7 @@ class database:
         logger.debug('executing: ' + query)
         self.cur.execute(query)
 
-        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(rec.ingredients)}", "{str(rec.directions)}")'
+        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(rec.ingredients)}", "{str(rec.directions)}", "{rec.source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
@@ -89,9 +93,9 @@ class database:
         logger.debug('executing: ' + query)
         self.cur.execute(query)
 
-        name, prep_time, cook_time, yieldAmnt, category, rating, ingredients, directions = tab['fields']
+        name, prep_time, cook_time, yieldAmnt, category, rating, ingredients, directions, source = tab['fields']
         table = tab['tabname']
-        query = f'insert into {table} values ("{name}", {prep_time}, {cook_time}, "{yieldAmnt}", "{category}", {rating}, "{ingredients}", "{directions}")'
+        query = f'insert into {table} values ("{name}", {prep_time}, {cook_time}, "{yieldAmnt}", "{category}", {rating}, "{ingredients}", "{directions}", "{source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()

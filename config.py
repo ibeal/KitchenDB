@@ -9,7 +9,7 @@ fillApos = re.compile(APOSREPLACE)
 logger.debug('funcs imported')
 global dataFields
 dataFields = ['name string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
-  'rating integer', 'ingredients list', 'directions list']
+  'rating integer', 'ingredients list', 'directions list', 'source string']
 
 def aposFilter(dirty):
     """A function that takes a string and replaces all apostrophes with the global

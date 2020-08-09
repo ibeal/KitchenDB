@@ -21,18 +21,14 @@ class recipe:
 
         return f'{info}\n\n{ingr}\n{dir}'
 
+    def guts(self):
+        return ({self.name}, {self.prep_time}, {self.cook_time}, {self.yieldAmnt}, {self.category}, {self.rating}, {self.ingrdients}, {self.directions})
+
+    def meta(self):
+        return ('Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source')
+
     def edit(self, data):
         """Function that builds the recipe object from DB entry"""
-        # self.fields = {}
-        # for field in dataFields:
-        #     name, type = field.split(' ')
-        #     if type == 'integer':
-        #         pass
-        #     elif type == 'string':
-        #         pass
-        #     elif type == 'list':
-        #         pass
-        #     self.fields[k] = data[k]
         self.name = data[0]
         self.prep_time = data[1]
         self.cook_time = data[2]
@@ -41,6 +37,7 @@ class recipe:
         self.rating = data[5]
         self.ingredients = interp(data[6])
         self.directions = interp(data[7])
+        self.source = data[8]
 
 
     def new(self):
@@ -56,6 +53,7 @@ class recipe:
         self.rating = -1 # unrated
         self.ingredients = self.getIng()
         self.directions = self.getDir()
+        self.source = input('Add a source, or leave blank: ')
         # self.outputToYaml()
 
     def outputToYaml(self, filename='recipe.yaml'):

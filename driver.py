@@ -45,22 +45,3 @@ def main(**kwargs):
             print()
 
     logger.debug('driver.main finished.')
-
-"""
-    # Create/populate tables
-    with open('parts3.txt') as f:
-        db.cur.execute('drop table if exists parts')
-        create_from_csv(f)
-
-    with open('suppliers3.txt') as f:
-        db.cur.execute('drop table if exists suppliers')
-        create_from_csv(f)
-
-    with open('projects3.txt') as f:
-        db.cur.execute('drop table if exists projects')
-        create_from_csv(f)
-
-    with open('spj3.txt') as f:
-        db.cur.execute('drop table if exists spj')
-        create_from_csv(f)
-"""
