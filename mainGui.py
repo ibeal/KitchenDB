@@ -29,9 +29,9 @@ class mainGui(tk.Frame):
         self.bar = self.toolbar()
         self.state = "recView"
         # self.bar.pack(side=tk.TOP, fill=tk.BOTH)
-        self.bar.grid(row=0, column=0, sticky=tk.N+tk.E+tk.W)
+        self.bar.grid(row=0, column=0, sticky=N+E+W)
         # self.table.pack(fill=tk.BOTH)
-        self.table.grid(row=1, column=0, sticky=tk.N+tk.E+tk.W)
+        self.table.grid(row=1, column=0, sticky=N+E+W)
         # self.rec.pack(side=tk.BOTTOM, fill=tk.BOTH)
         self.rec.grid(row=2, column=0, sticky=N+E+S+W)
 
@@ -56,6 +56,7 @@ class mainGui(tk.Frame):
               .grid(row=i, column=0, sticky=N+E+S+W)
             tk.Entry(master=content, width=60)\
               .grid(row=i, column=1, sticky=N+E+S+W)
+
         # Directions
         tk.Label(master=content, text='Directions')\
           .grid(row=6, column=0, columnspan=2, sticky=N+E+S+W)
@@ -97,11 +98,12 @@ class mainGui(tk.Frame):
         holder = tk.Frame(master=master)
         resizeSetup(holder, rows=3, cols=1)
 
-        # search bar and button
+        # search area
         searchBar = tk.Frame(master=holder)
         resizeSetup(searchBar, rows=1, cols=5)
         searchBar.grid(row=0, column=0, sticky=N+E+W)
 
+        # search bar and button
         searchEntry = tk.Entry(master=searchBar)
         searchEntry.grid(row=0, column=0, columnspan=4, sticky=N+E+S+W)
         search = tk.Button(master=searchBar, text='Search')
@@ -112,20 +114,27 @@ class mainGui(tk.Frame):
         resizeSetup(options, rows=6, cols=colCount+1)
         options.grid(row=1, column=0, sticky=N+E+S+W)
 
+        # Buttons (Right of option table)
+        # Up/Down buttons to scroll through options
         up = tk.Button(master=options, text='UP')
         up.grid(row=1, column=colCount+1, sticky=N+E+S+W)
         down = tk.Button(master=options, text='DOWN')
         down.grid(row=2, column=colCount+1, sticky=N+E+S+W)
+
+        # amount field
         amount = tk.Entry(master=options)
         amount.grid(row=4, column=colCount+1, sticky=N+E+S+W)
+
+        # add button
         add = tk.Button(master=options, text='Add')
         add.grid(row=5, column=colCount+1, sticky=N+E+S+W)
 
-
+        # table containing ingredient options
         optionsTable = tk.Frame(master=options)
         resizeSetup(optionsTable, rows=rowCount, cols=colCount)
         optionsTable.grid(row=0, column=0, rowspan=6, columnspan=5, sticky=N+E+S+W)
 
+        # fill with data
         for row in range(rowCount):
             for col in range(colCount):
                 label = tk.Button(master=optionsTable, text='[Blank]')
@@ -204,6 +213,7 @@ class mainGui(tk.Frame):
                     bg=color
                 )
                 resizeSetup(frame)
+                
                 # fill with button
                 frame.grid(
                     row=row,
@@ -212,6 +222,7 @@ class mainGui(tk.Frame):
                     ipady=0,
                     sticky=N+E+S+W
                 )
+
                 label = tk.Button(
                     master=frame,
                     text=f"{allData[row][col]}",
