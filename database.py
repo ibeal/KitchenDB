@@ -3,8 +3,8 @@ from recipeCreator import *
 global dataFields
 
 class database:
-    def __init__(self):
-        self.conn = sql.connect('KitchenDB')
+    def __init__(self, source='KitchenDB'):
+        self.conn = sql.connect(source)
         self.cur = self.conn.cursor()
 
     def __del__(self):
