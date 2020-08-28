@@ -213,7 +213,7 @@ class mainGui(tk.Frame):
                     bg=color
                 )
                 resizeSetup(frame)
-                
+
                 # fill with button
                 frame.grid(
                     row=row,
