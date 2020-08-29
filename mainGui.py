@@ -21,25 +21,17 @@ class mainGui(tk.Frame):
         resizeSetup(self, rows=3, cols=1)
         self.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
 
-        # self.pack()
-        # self.create_widgets()
         self.db = database()
         self.table = self.recipeTable()
         self.rec = self.recView()
         self.bar = self.toolbar()
         self.state = "recView"
-        # self.bar.pack(side=tk.TOP, fill=tk.BOTH)
-        self.bar.grid(row=0, column=0, sticky=N+E+W)
-        # self.table.pack(fill=tk.BOTH)
-        self.table.grid(row=1, column=0, sticky=N+E+W)
-        # self.rec.pack(side=tk.BOTTOM, fill=tk.BOTH)
-        self.rec.grid(row=2, column=0, sticky=N+E+S+W)
 
-    def create_widgets(self):
-        self.hi_there = tk.Button(master=self)
-        # self.hi_there["text"] = "Hello World\n(click me)"
-        # self.hi_there["command"] = self.say_hi
-        # self.hi_there.pack(side="top")
+        self.bar.grid(row=0, column=0, sticky=N+E+W)
+
+        self.table.grid(row=1, column=0, sticky=N+E+W)
+
+        self.rec.grid(row=2, column=0, sticky=N+E+S+W)
 
     def recView(self, recipe=None):
         """This is the recipe view, is allows for creating new recipes and
