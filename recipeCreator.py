@@ -1,8 +1,12 @@
-from libs import *
-from config import *
-global dataFields
+import csv, json, yaml, sys, logging, re
+import sqlite3 as sql
+import requests as rq
+from contextlib import suppress
+global logger
 
 class recipe:
+    dataFields = ['name string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
+      'rating integer', 'ingredients list', 'directions list', 'source string']
     def __init__(self, data=None):
         if not data:
             self.new()
@@ -35,8 +39,8 @@ class recipe:
         self.yieldAmnt = data[3]
         self.category = data[4]
         self.rating = data[5]
-        self.ingredients = interp(data[6])
-        self.directions = interp(data[7])
+        self.ingredients = self.interp(data[6])
+        self.directions = self.interp(data[7])
         self.source = data[8]
 
 
@@ -51,8 +55,8 @@ class recipe:
         self.yieldAmnt = input('Please enter the yield for this recipe: ')
         self.category = input('Please enter the category for this recipe: ')
         self.rating = -1 # unrated
-        self.ingredients = self.getIng()
-        self.directions = self.getDir()
+        self.ingredients = getIng()
+        self.directions = getDir()
         self.source = input('Add a source, or leave blank: ')
         # self.outputToYaml()
 
@@ -72,6 +76,77 @@ class recipe:
             yaml.dump(yam, f)
             logger.debug(f'Output to Yaml completed. File: {filename}')
 
+    @staticmethod
+    def topLevelSplit(line):
+        """Helper function for interp, splits on every comma that is on the top level.
+        any commas that are nested within parens or brackets are skipped"""
+        # list of the locations of the commas
+        # preloaded with a -1 which resolves to location 0 in the end
+        splits = [-1]
+        # iterate through each character
+        index = 0
+        while index < len(line):
+            # if we have a open bracket, skip to the closing bracket
+            if line[index] == '[':
+                index = line.find(']', index+1)
+            # if we have a open paren, skip to the closing paren
+            elif line[index] == '(':
+                index = line.find(')', index+1)
+            # if we have a comma, record the location
+            elif line[index] == ',':
+                splits.append(index)
+            # increment to next character
+            index += 1
+
+        # list of the different splits
+        lines = []
+        # add the last location to the end
+        splits.append(len(line))
+
+        # for n - 1 splits
+        for index in range(len(splits) - 1):
+            # record the string from current index + 1 to the next index
+            # this way commas are ignored
+            start = splits[index]+1
+            end = splits[index+1]
+            lines.append(line[start:end])
+        logging.debug(f'Split returns: {lines}')
+        return lines
+
+    @staticmethod
+    def interp(line):
+        """Fairly complicated function, used to interpret my stringified list
+        it takes a string and outputs a list"""
+
+        # this iterates through each character, so last is the last character
+        last = len(line)
+        for index in range(last):
+            # if the character is open bracket, we've started a list
+            if line[index] == '[':
+                # recursive call, returns a list of everything between the open bracket to close bracket
+                return [recipe.interp(item) for item in recipe.topLevelSplit(line[index+1:line.find(']')])]
+            # if the character is close bracket, we've started a tuple
+            elif line[index] == '(':
+                # recursive call, returns a tuple of everything between the open paren to close paren
+                return tuple(recipe.interp(item) for item in recipe.topLevelSplit(line[index+1:line.find(')')]))
+            # if the character is an apostrophe, we have a string
+            elif line[index] == "'":
+                # return the string of everything in between
+                return str(line[index+1:line.find("'", index+1)])
+            # if the character is an quotation, we have a string
+            elif line[index] == '"':
+                # return the stirng of everything in between
+                return str(line[index+1:line.find('"', index+1)])
+            # if the character is a number, we've started a number
+            elif line[index].isdigit():
+                start = index
+                # continue until the digits end
+                while index < last and line[index].isdigit():
+                    index+=1
+                # return the int of the digits
+                return int(line[start:index+1])
+        # if we reach the end, we return empty string
+        return ''
 
     @staticmethod
     def getIng():

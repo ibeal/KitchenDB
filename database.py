@@ -1,11 +1,14 @@
-from config import *
 from recipeCreator import *
 global dataFields
 
 class database:
-    def __init__(self, source='KitchenDB'):
+    APOSREPLACE = ';:'
+    findApos = re.compile("'")
+    fillApos = re.compile(APOSREPLACE)
+    def __init__(self, returnRecipe=True, source='KitchenDB'):
         self.conn = sql.connect(source)
         self.cur = self.conn.cursor()
+        self.returnRecipe = returnRecipe
 
     def __del__(self):
         self.conn.close()
@@ -34,10 +37,14 @@ class database:
         if last:
             count = last - first
         res = self.cur.execute(f"SELECT * FROM recipes LIMIT {first}, {count}")
+        if self.returnRecipe:
+            return [recipe(i) for i in res]
         return [i for i in res]
 
     def search(self, query):
         res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
+        if self.returnRecipe:
+            return [recipe(i) for i in res]
         return [i for i in res]
 
     def getColumns(self, table):
@@ -66,12 +73,30 @@ class database:
         logger.debug('executing: ' + query)
         self.cur.execute(query)
 
-        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(rec.ingredients)}", "{str(rec.directions)}", "{rec.source}")'
+        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
 
+    @staticmethod
+    def aposFilter(dirty):
+        """A function that takes a string and replaces all apostrophes with the global
+        APOSREPLACE value, currently ';:'. Inverse of aposFiller."""
+        if not isinstance(dirty, str):
+            logger.debug(f'{dirty} is not a string. aposFilter aborting...')
+            return dirty
+        clean = self.findApos.sub(self.APOSREPLACE, dirty)
+        return clean
 
+    @staticmethod
+    def aposFiller(clean):
+        """A function that takes a string and replaces all instances of COMMAREPLACE,
+        currently ';:', with an apostrophe. Inverse of aposFilter."""
+        if not isinstance(clean, str):
+            logger.debug(f'{clean} is not a string. aposFiller aborting...')
+            return clean
+        dirty = self.fillApos.sub("'", clean)
+        return dirty
 
     def create_from_csv(self, f):
         """A function that creates tables from csv files"""

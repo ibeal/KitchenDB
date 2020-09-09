@@ -1,6 +1,9 @@
-import driver, sys, testRealm
-from config import *
+import mainCLI, sys, testRealm, logging, mainGui
+
 import KitchenGUI as gui
+
+global logger
+logger = logging.getLogger('Debug Log')
 
 if '-d' in sys.argv:
     # show debug logs
@@ -8,7 +11,8 @@ if '-d' in sys.argv:
     logger.debug('Debug mode activated. All debug logs will be shown')
 
 if '--cli' in sys.argv:
-    driver.main()
+    mainCLI.main()
+    exit(0)
 
 if '-t' in sys.argv:
     # run the test module && exit
@@ -16,4 +20,4 @@ if '-t' in sys.argv:
     testRealm.main()
     exit(0)
 
-gui.main()
+mainGui.main()

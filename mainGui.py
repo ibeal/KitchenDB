@@ -1,15 +1,19 @@
 import tkinter as tk
+import tkinter.messagebox as tkmb
 from recipeCreator import *
-from libs import *
-from config import *
+import csv, json, yaml, sys, logging, re
+import sqlite3 as sql
+import requests as rq
+from contextlib import suppress
 from database import *
 from tkinter import N,E,S,W
+from apiCalls import *
+from KitchenGUI.searchBar import searchBar
+from KitchenGUI.table import table
+from KitchenGUI.helpers import resizeSetup
 
-def resizeSetup(target, rows=1, cols=1):
-    for row in range(rows):
-        tk.Grid.rowconfigure(target, row, weight=1)
-    for col in range(cols):
-        tk.Grid.columnconfigure(target, col, weight=1)
+global logger
+logger = logging.getLogger('Debug Log')
 
 class mainGui(tk.Frame):
     def __init__(self, master=None):
@@ -21,7 +25,7 @@ class mainGui(tk.Frame):
         resizeSetup(self, rows=3, cols=1)
         self.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
 
-        self.db = database()
+        self.db = database(returnRecipe=False)
         self.table = self.recipeTable()
         self.rec = self.recView()
         self.bar = self.toolbar()
@@ -83,7 +87,7 @@ class mainGui(tk.Frame):
         self.back.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
         return bar
 
-    def ingFrame(self, master, rowCount=3, colCount=5):
+    def ingFrame(self, master, rowCount=3, colCount=3):
         """This is a helper function for recView, it creates the ingredient adder section"""
 
         # content frame
@@ -91,19 +95,14 @@ class mainGui(tk.Frame):
         resizeSetup(holder, rows=3, cols=1)
 
         # search area
-        searchBar = tk.Frame(master=holder)
-        resizeSetup(searchBar, rows=1, cols=5)
-        searchBar.grid(row=0, column=0, sticky=N+E+W)
+        # search = tk.Frame(master=holder)
+        search = searchBar(master=holder)
 
-        # search bar and button
-        searchEntry = tk.Entry(master=searchBar)
-        searchEntry.grid(row=0, column=0, columnspan=4, sticky=N+E+S+W)
-        search = tk.Button(master=searchBar, text='Search')
-        search.grid(row=0, column=4, sticky=N+E+S+W)
+        search.grid(row=0, column=0, sticky=N+E+W)
 
         # option selector
         options = tk.Frame(master=holder)
-        resizeSetup(options, rows=6, cols=colCount+1)
+        resizeSetup(options, rows=6, cols=colCount+2)
         options.grid(row=1, column=0, sticky=N+E+S+W)
 
         # Buttons (Right of option table)
@@ -121,19 +120,14 @@ class mainGui(tk.Frame):
         add = tk.Button(master=options, text='Add')
         add.grid(row=5, column=colCount+1, sticky=N+E+S+W)
 
-        # table containing ingredient options
-        optionsTable = tk.Frame(master=options)
-        resizeSetup(optionsTable, rows=rowCount, cols=colCount)
-        optionsTable.grid(row=0, column=0, rowspan=6, columnspan=5, sticky=N+E+S+W)
-
-        # fill with data
-        for row in range(rowCount):
-            for col in range(colCount):
-                label = tk.Button(master=optionsTable, text='[Blank]')
-                label.grid(row=row, column=col, sticky=N+E+S+W)
-                # label
-                # optionsTable
-
+        blanks = [['[BLANK]'] * colCount for i in range(rowCount)]
+        self.optionsTable = table(master=options,
+                             rows=rowCount,
+                             cols=colCount,
+                             data=blanks,
+                             innerWidget=tk.Button)
+        self.optionsTable.grid(row=0, column=0, rowspan=6, columnspan=colCount, sticky=N+E+S+W)
+        search.addFunc(func=lambda query: mainGui.getIngResults(self.optionsTable, query))
 
         # current ingredients
         current = tk.Frame(master=holder)
@@ -144,19 +138,25 @@ class mainGui(tk.Frame):
 
         return holder
 
-    def recipeTable2(self, rowCount=1, colCount=6):
-        """This is the table view, it displays the database, and allows searching
-        the database"""
-        # Acquire data
-        header = self.db.getColumns('recipes')[:colCount]
-        data = self.db.recipes(first=0, count=rowCount)
-        # Combine into one dataframe
-        allData = [header, *data]
-        # Content Window holds all the table elements
-        table = Table(master=self.master, rows=rowCount, cols=colCount,
-                        innerWidget=tk.Button, data=allData)
+    @staticmethod
+    def getIngResults(table, query):
+        logger.debug(f'table={table}, query={query}')
+        api = apiCalls()
+        response = api.apiSearchFood(query)
+        options = response.json()['foods']
+        upperLimit = len(options) - 1
+        data = blanks = [['[BLANK]'] * table.cols for i in range(table.rows)]
+        for i in range(table.rows):
+            data[i][0] = options[i]["description"][:25]
+            with suppress(KeyError):
+                if options[i]['dataType'] == 'Branded':
+                    data[i][1] = options[i]["brandOwner"][:25]
+                    data[i][2] = options[i]["ingredients"][:43]
+                else:
+                    data[i][2] = options[i]["additionalDescriptions"][:43]
 
-        return table
+        table.updateTable(data)
+
 
     def recipeTable(self, rowCount=1, colCount=6):
         """This is the table view, it displays the database, and allows searching
@@ -166,67 +166,87 @@ class mainGui(tk.Frame):
         data = self.db.recipes(first=0, count=rowCount)
         # Combine into one dataframe
         allData = [header, *data]
+
         # Content Window holds all the table elements
-        table = tk.Frame(master=self)
-        resizeSetup(table, rows=rowCount+1, cols=colCount)
+        tableFrame = tk.Frame(master=self)
+        resizeSetup(tableFrame, rows=2, cols=1)
 
-        # Table Headers
-        for col in range(colCount):
-            table.columnconfigure(col, weight=1, minsize=75)
-            frame = tk.Frame(
-                master=table,
-                relief=tk.RAISED,
-                borderwidth=0
-            )
-            resizeSetup(frame)
-            frame.grid(row=0, column=col, sticky=N+E+S+W)
-            label = tk.Label(
-                master=frame,
-                text=f"{header[col]}",
-            )
-            label.grid(row=0, column=0, sticky=N+E+S+W)
-        # Fill table with data
-        for row in range(1,rowCount+1):
-            # determine row resizing
-            table.rowconfigure(row, weight=1, minsize=50)
+        search = searchBar(master=tableFrame)
+        search.grid(row=0, column=0, sticky= N+E+S+W)
 
-            # determine the row color, switches between white and grey
-            color = 'white'
-            if row % 2 == 1:
-                color = 'grey'
-            for col in range(colCount):
-                # determine column resizing
-                table.columnconfigure(col, weight=1, minsize=75)
-                #build frame
-                frame = tk.Frame(
-                    master=table,
-                    relief=tk.RAISED,
-                    borderwidth=0,
-                    bg=color
-                )
-                resizeSetup(frame)
+        tab = table(master=tableFrame,
+                      rows=rowCount+1,
+                      cols=colCount,
+                      data=allData,
+                      innerWidget=tk.Button,
+                      header=True,
+                      style='alternating')
+        tab.grid(row=1, column=0, sticky=N+E+S+W)
 
-                # fill with button
-                frame.grid(
-                    row=row,
-                    column=col,
-                    ipadx=0,
-                    ipady=0,
-                    sticky=N+E+S+W
-                )
-
-                label = tk.Button(
-                    master=frame,
-                    text=f"{allData[row][col]}",
-                    borderwidth=0,
-                    bg=color)
-                label.grid(row=0, column=0, sticky=N+E+S+W)
-        return table
+        # # Table Headers
+        # for col in range(colCount):
+        #     # table.columnconfigure(col, weight=1, minsize=75)
+        #     frame = tk.Frame(
+        #         master=table,
+        #         relief=tk.RAISED,
+        #         borderwidth=0
+        #     )
+        #     resizeSetup(frame)
+        #     frame.grid(row=1, column=col, sticky=N+E+S+W)
+        #     label = tk.Label(
+        #         master=frame,
+        #         text=f"{header[col]}",
+        #     )
+        #     label.grid(row=0, column=0, sticky=N+E+S+W)
+        # # Fill table with data
+        # for row in range(1,rowCount+1):
+        #     # determine row resizing
+        #     # table.rowconfigure(row, weight=1, minsize=50)
+        #
+        #     # determine the row color, switches between white and grey
+        #     color = 'white'
+        #     if row % 2 == 0:
+        #         color = 'grey'
+        #     for col in range(colCount):
+        #         # determine column resizing
+        #         table.columnconfigure(col, weight=1, minsize=75)
+        #         #build frame
+        #         frame = tk.Frame(
+        #             master=table,
+        #             relief=tk.RAISED,
+        #             borderwidth=0,
+        #             bg=color
+        #         )
+        #         resizeSetup(frame)
+        #
+        #         # fill with button
+        #         frame.grid(
+        #             row=row+1,
+        #             column=col,
+        #             ipadx=0,
+        #             ipady=0,
+        #             sticky=N+E+S+W
+        #         )
+        #
+        #         label = tk.Button(
+        #             master=frame,
+        #             text=f"{allData[row][col]}",
+        #             borderwidth=0,
+        #             bg=color)
+        #         label.grid(row=0, column=0, sticky=N+E+S+W)
+        return tableFrame
 
     def say_hi(self):
         print("hi there, everyone!")
 
-if __name__ == '__main__':
+def main():
     root = tk.Tk()
     app = mainGui(master=root)
-    app.mainloop()
+
+    # app = tk.Frame(master=root)
+    # app.pack()
+    # searchBar(master=app, func=print).pack()
+    root.mainloop()
+
+if __name__ == '__main__':
+    main()
