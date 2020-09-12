@@ -23,12 +23,12 @@ class searchBar(tk.Frame):
 
     def addFunc(self, func):
         self.func = func
-        
-    def search(self):
+
+    def search(self, **kw):
         # logger.debug('Search Button Clicked, callback function called')
         # print('callback called')
         if self.func:
-            self.func(self.searchEntry.get())
+            self.func(self.searchEntry.get(), **kw)
 
     @staticmethod
     def main():

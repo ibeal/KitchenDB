@@ -2,6 +2,7 @@
 from KitchenGUI.helpers import resizeSetup
 import tkinter as tk
 from tkinter import N,E,S,W
+from copy import deepcopy,copy
 
 class table(tk.Frame):
     def __init__(self,
@@ -12,7 +13,8 @@ class table(tk.Frame):
                 innerWidget=tk.Label,
                 buttonCallback=None,
                 header=False,
-                style='default'):
+                style='default',
+                fullData=None):
         """
         parameters:
         master: the master frame for the table
@@ -30,6 +32,10 @@ class table(tk.Frame):
         self.rows=rows
         self.cols=cols
         self.data=data
+        if not fullData:
+            self.fullData = data
+        else:
+            self.fullData = fullData
         self.innerWidget=innerWidget
         self.callback=buttonCallback
         self.header=header
@@ -37,6 +43,7 @@ class table(tk.Frame):
         self.content = tk.Frame(master=self)
         resizeSetup(self.content, rows=self.rows, cols=self.cols)
         self.content.grid(row=0, column=0, sticky=N+E+S+W)
+        self.tiles = [['[BLANK]'] * self.cols for i in range(self.rows)]
         self.fillTable()
 
 
@@ -49,15 +56,15 @@ class table(tk.Frame):
         if self.header:
             # Table Headers
             for col in range(self.cols):
-                frame = tk.Frame(
+                self.tiles[0][col] = tk.Frame(
                     master=self.content,
                     relief=tk.RAISED,
                     borderwidth=0
                 )
-                resizeSetup(frame)
-                frame.grid(row=0, column=col, sticky=N+E+S+W)
+                resizeSetup(self.tiles[0][col])
+                self.tiles[0][col].grid(row=0, column=col, sticky=N+E+S+W)
                 label = tk.Label(
-                    master=frame,
+                    master=self.tiles[0][col],
                     text=f"{self.data[0][col]}",
                 )
                 label.grid(row=0, column=0, sticky=N+E+S+W)
@@ -74,21 +81,26 @@ class table(tk.Frame):
                 color = 'grey'
 
             for col in range(self.cols):
-                label = self.innerWidget(
+                self.tiles[row][col] = self.innerWidget(
                     master=self.content,
                     text=self.data[row][col],
                     bd=0,
                     bg=color)
                 # if using button, a callback can be supplied
                 if self.innerWidget == tk.Button:
-                    label['command'] = self.callback
-                label.grid(row=row, column=col, sticky=N+E+S+W)
+                    self.tiles[row][col]['command'] = lambda row=row, col=col: self.callback(row=row, col=col)
+                self.tiles[row][col].grid(row=row, column=col, sticky=N+E+S+W)
 
-    def updateTable(self, data):
+    def updateTable(self, data, fullData=None):
         """updates the table with new data"""
         # updates the data property
         self.data = data
+        if not fullData:
+            self.fullData = data
+        else:
+            self.fullData = fullData
         self.content.destroy()
+        self.tiles = [['[BLANK]'] * self.cols for i in range(self.rows)]
         self.content = tk.Frame(master=self)
         resizeSetup(self.content, rows=self.rows, cols=self.cols)
         self.content.grid(row=0, column=0, sticky=N+E+S+W)

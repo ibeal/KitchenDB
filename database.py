@@ -85,7 +85,7 @@ class database:
         if not isinstance(dirty, str):
             logger.debug(f'{dirty} is not a string. aposFilter aborting...')
             return dirty
-        clean = self.findApos.sub(self.APOSREPLACE, dirty)
+        clean = database.findApos.sub(database.APOSREPLACE, dirty)
         return clean
 
     @staticmethod
@@ -95,7 +95,7 @@ class database:
         if not isinstance(clean, str):
             logger.debug(f'{clean} is not a string. aposFiller aborting...')
             return clean
-        dirty = self.fillApos.sub("'", clean)
+        dirty = database.fillApos.sub("'", clean)
         return dirty
 
     def create_from_csv(self, f):

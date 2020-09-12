@@ -1,10 +1,10 @@
 import tkinter as tk
 import tkinter.messagebox as tkmb
-from recipeCreator import *
 import csv, json, yaml, sys, logging, re
 import sqlite3 as sql
 import requests as rq
 from contextlib import suppress
+from recipeCreator import *
 from database import *
 from tkinter import N,E,S,W
 from apiCalls import *
@@ -31,6 +31,7 @@ class mainGui(tk.Frame):
         self.bar = self.toolbar()
         self.state = "recView"
 
+        self.selectedIng = None
         self.bar.grid(row=0, column=0, sticky=N+E+W)
 
         self.table.grid(row=1, column=0, sticky=N+E+W)
@@ -117,7 +118,8 @@ class mainGui(tk.Frame):
         amount.grid(row=4, column=colCount+1, sticky=N+E+S+W)
 
         # add button
-        add = tk.Button(master=options, text='Add')
+        add = tk.Button(master=options,
+                        text='Add')
         add.grid(row=5, column=colCount+1, sticky=N+E+S+W)
 
         blanks = [['[BLANK]'] * colCount for i in range(rowCount)]
@@ -125,10 +127,12 @@ class mainGui(tk.Frame):
                              rows=rowCount,
                              cols=colCount,
                              data=blanks,
-                             innerWidget=tk.Button)
+                             innerWidget=tk.Button,
+                             buttonCallback=lambda row, col: self.activateRow(self.optionsTable, row, col))
         self.optionsTable.grid(row=0, column=0, rowspan=6, columnspan=colCount, sticky=N+E+S+W)
-        search.addFunc(func=lambda query: mainGui.getIngResults(self.optionsTable, query))
-
+        search.addFunc(func=lambda query, **kw: self.getIngResults(self.optionsTable, query, **kw))
+        up['command'] = lambda: search.search(newQuery=False, up=True)
+        down['command'] = lambda: search.search(newQuery=False, up=False)
         # current ingredients
         current = tk.Frame(master=holder)
         resizeSetup(current, rows=1, cols=1)
@@ -136,16 +140,46 @@ class mainGui(tk.Frame):
         currentText = tk.Text(master=current, height=10, width=60)
         currentText.grid(row=0, column=0, sticky=N+E+S+W)
 
+        add["command"] = lambda: self.addIng(amount, currentText)
+
         return holder
 
-    @staticmethod
-    def getIngResults(table, query):
+    def addIng(self, entry, dest):
+        logger.debug('Add Ingredient Button pressed')
+        amount = entry.get()
+        choice = self.optionsTable.fullData[self.selectedIng]
+        ing = (database.aposFilter(choice['description']), choice['fdcId'], amount)
+        dest.insert(tk.END, ing)
+        dest.insert(tk.END, '\n')
+
+        pass
+
+    def activateRow(self, table, row, col):
+        logger.debug(f"row activated at {row}")
+        self.selectedIng = row
+        for r in table.tiles:
+            for tile in r:
+                tile["bg"] = 'white'
+        for tile in table.tiles[row]:
+            tile['bg'] = 'grey'
+
+    def getIngResults(self, table, query, newQuery=True, up=True):
+        self.selectedIng = None
+        if newQuery:
+            self.minimumIngChoice = 0
+            logger.debug(f'ingredient table range is 0 to {table.rows}')
+        else:
+            if up:
+                self.minimumIngChoice += table.rows
+            elif self.minimumIngChoice > table.rows - 1:
+                self.minimumIngChoice -= table.rows
+            logger.debug(f'ingredient table range is {self.minimumIngChoice} to {table.rows + self.minimumIngChoice}')
         logger.debug(f'table={table}, query={query}')
         api = apiCalls()
         response = api.apiSearchFood(query)
-        options = response.json()['foods']
+        options = response.json()['foods'][self.minimumIngChoice:table.rows + table.rows + self.minimumIngChoice]
         upperLimit = len(options) - 1
-        data = blanks = [['[BLANK]'] * table.cols for i in range(table.rows)]
+        data = [['[BLANK]'] * table.cols for i in range(table.rows)]
         for i in range(table.rows):
             data[i][0] = options[i]["description"][:25]
             with suppress(KeyError):
@@ -155,7 +189,7 @@ class mainGui(tk.Frame):
                 else:
                     data[i][2] = options[i]["additionalDescriptions"][:43]
 
-        table.updateTable(data)
+        table.updateTable(data, fullData=options)
 
 
     def recipeTable(self, rowCount=1, colCount=6):
