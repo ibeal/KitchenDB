@@ -7,6 +7,8 @@ global logger
 class recipe:
     dataFields = ['name string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
       'rating integer', 'ingredients list', 'directions list', 'source string']
+    # fields = ['Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating', 'Source',]
+    pretty_fields = ['Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source']
     def __init__(self, data=None):
         if not data:
             self.new()
@@ -26,19 +28,34 @@ class recipe:
         return f'{info}\n\n{ingr}\n{dir}'
 
     def guts(self):
-        return ({self.name}, {self.prep_time}, {self.cook_time}, {self.yieldAmnt}, {self.category}, {self.rating}, {self.ingrdients}, {self.directions})
+        return {"Title": self.name,
+                "Prep Time": self.prep_time,
+                "Cook Time": self.cook_time,
+                "Yield": self.yieldAmnt,
+                "Category": self.category,
+                "Rating": self.rating,
+                "Ingredients": self.ingredients,
+                "Directions": self.directions,
+                "Source": self.source}
 
     def meta(self):
-        return ('Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source')
+        return tuple(recipe.pretty_fields)
 
     def edit(self, data):
-        """Function that builds the recipe object from DB entry"""
+        """Function that builds the recipe object from DB entry.
+        expects data in this format:
+        [('Peanut Butter Sandwich', 5, 0, '1 Sandwich', 'Lunch', -1,
+          "[('BREAD', 473832, '2 Slices'), ('Peanut butter', 784416, '3 T'),
+              ('JAM', 389529, '3 T')]",
+          "['1. Spread PB on Sandwich', '2. Spread Jam on Sandwich', '3. Enjoy!']",
+        '')]"""
+
         self.name = data[0]
-        self.prep_time = data[1]
-        self.cook_time = data[2]
+        self.prep_time = int(data[1])
+        self.cook_time = int(data[2])
         self.yieldAmnt = data[3]
         self.category = data[4]
-        self.rating = data[5]
+        self.rating = int(data[5])
         self.ingredients = self.interp(data[6])
         self.directions = self.interp(data[7])
         self.source = data[8]

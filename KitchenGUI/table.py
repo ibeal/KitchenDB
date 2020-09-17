@@ -23,8 +23,14 @@ class table(tk.Frame):
         data: list of lists (matrix) containing data to display
         innerWidget: the type of the individual elements of the table
         buttonCallback: The function that is called when the button is clicked
+            Functions passed here must have at least (row, col) parameters,
+            as those are passed in the function here in the table code
         header: bool, whether or not the first row is a header row
         style: string, right now just accepts alternating, meaning that the color alternates
+        fullData: This is the data that is accessed with callbacks, if left to None
+            this will point to the data arg. This could be used to display a subset
+            of the data (by passing it to data), while maintaining the full dataset
+            for querying
         """
         super().__init__(master)
         resizeSetup(self)
@@ -81,15 +87,23 @@ class table(tk.Frame):
                 color = 'grey'
 
             for col in range(self.cols):
-                self.tiles[row][col] = self.innerWidget(
-                    master=self.content,
-                    text=self.data[row][col],
-                    bd=0,
-                    bg=color)
-                # if using button, a callback can be supplied
-                if self.innerWidget == tk.Button:
-                    self.tiles[row][col]['command'] = lambda row=row, col=col: self.callback(row=row, col=col)
-                self.tiles[row][col].grid(row=row, column=col, sticky=N+E+S+W)
+                try:
+                    self.tiles[row][col] = self.innerWidget(
+                        master=self.content,
+                        text=self.data[row][col],
+                        bd=0,
+                        bg=color)
+                    # if using button, a callback can be supplied
+                    if self.innerWidget == tk.Button:
+                        self.tiles[row][col]['command'] = lambda row=row, col=col: self.callback(row=row, col=col)
+                    self.tiles[row][col].grid(row=row, column=col, sticky=N+E+S+W)
+                except:
+                    self.tiles[row][col] = self.innerWidget(
+                        master=self.content,
+                        text="[BLANK]",
+                        bd=0,
+                        bg=color)
+                    self.tiles[row][col].grid(row=row, column=col, sticky=N+E+S+W)
 
     def updateTable(self, data, fullData=None):
         """updates the table with new data"""

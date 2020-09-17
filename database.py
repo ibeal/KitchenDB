@@ -1,5 +1,6 @@
 from recipeCreator import *
-global dataFields
+import logging
+logger = logging.getLogger('Debug Log')
 
 class database:
     APOSREPLACE = ';:'
@@ -41,17 +42,33 @@ class database:
             return [recipe(i) for i in res]
         return [i for i in res]
 
+    def recipeExists(self, name):
+        if isinstance(name, recipe):
+            name = name.name
+        logger.debug(f'checking for {name}')
+        res = self.cur.execute(f"SELECT * FROM recipes WHERE name='{name}'")
+        return len(list(res)) > 0
+
+    def deleteRecipe(self, name):
+        if isinstance(name, recipe):
+            name = name.name
+        logger.debug(f'deleting recipe {name}')
+        res = self.cur.execute(f"DELETE FROM recipes WHERE name='{name}'")
+        self.conn.commit()
+
     def search(self, query):
+        logger.debug(f'searching db for {query}')
         res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
         if self.returnRecipe:
             return [recipe(i) for i in res]
         return [i for i in res]
 
     def getColumns(self, table):
+        logger.debug(f'DEPRECATED getColumns CALLED')
         res = self.cur.execute(f"SELECT * FROM {table}")
         return [info[0] for info in res.description]
 
-    def addNew(self):
+    def addNew(self, rec):
         rec = recipe()
         self.cur.execute('drop table if exists recipes')
         self.saveRecipe(rec)
@@ -65,7 +82,7 @@ class database:
         # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
         #   rating integer, ingredients string, directions string'
         tabfields = ''
-        for v in dataFields:
+        for v in recipe.dataFields:
             tabfields += f'{v}, '
         tabfields = tabfields[:-2]
         query = 'create table if not exists ' + table + ' (' + tabfields + ')'
@@ -78,6 +95,12 @@ class database:
         self.cur.execute(query)
         self.conn.commit()
 
+    def pack(rec):
+        # TODO: figure out these conversions
+        ing = "{str(database.aposFilter(rec.ingredients))}"
+        dirs = "{str(database.aposFilter(rec.directions))}"
+        return tuple(rec.name, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
+        
     @staticmethod
     def aposFilter(dirty):
         """A function that takes a string and replaces all apostrophes with the global
@@ -128,3 +151,5 @@ class database:
 if __name__ == '__main__':
     # Testing
     db = database()
+    print(db.recipeExists('Peanut Butter Sandwich'))
+    print(db.recipeExists('bogus'))

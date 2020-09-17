@@ -26,11 +26,13 @@ class mainGui(tk.Frame):
         self.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
 
         self.db = database(returnRecipe=False)
+        self.recFields = {}
+        self.recTableDim = (5,6)
         self.table = self.recipeTable()
         self.rec = self.recView()
         self.bar = self.toolbar()
-        self.state = "recView"
-
+        self.state = {"lastTableAction": "default"}
+        self.tableData = None
         self.selectedIng = None
         self.bar.grid(row=0, column=0, sticky=N+E+W)
 
@@ -44,28 +46,40 @@ class mainGui(tk.Frame):
         recipe information"""
         # Content Frame
         content = tk.Frame(master=self)
-        resizeSetup(content, rows=10, cols=2)
+        resizeSetup(content, rows=11, cols=2)
+
+        bar = tk.Frame(master=content)
+        bar.grid(row=0, column=0, columnspan=2, sticky=N+E+S+W)
+        resizeSetup(bar, rows=1, cols=3)
+        clear = tk.Button(master=bar, text="Clear", command=self.clearFields)
+        clear.grid(row=0, column=0, sticky=N+S+W+E)
+        delete = tk.Button(master=bar, text="Delete Recipe", command=self.deleteRecipe)
+        delete.grid(row=0, column=1, sticky=N+E+S+W)
+        save = tk.Button(master=bar, text="Save", command=self.saveFields)
+        save.grid(row=0, column=2, sticky=N+S+E+W)
 
         # Simpler fields are repeated as Entries
         simpleFields = ('Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating', 'Source')
-        for i, field in enumerate(simpleFields):
+        for i, field in enumerate(simpleFields, 1):
             tk.Label(master=content, text=field)\
               .grid(row=i, column=0, sticky=N+E+S+W)
-            tk.Entry(master=content, width=60)\
-              .grid(row=i, column=1, sticky=N+E+S+W)
+            entry = tk.Entry(master=content, width=60)
+            entry.grid(row=i, column=1, sticky=N+E+S+W)
+            self.recFields[field] = entry
 
         # Directions
         tk.Label(master=content, text='Directions')\
-          .grid(row=6, column=0, columnspan=2, sticky=N+E+S+W)
-        tk.Text(master=content, height=10, width=60)\
           .grid(row=7, column=0, columnspan=2, sticky=N+E+S+W)
+        dirs = tk.Text(master=content, height=10, width=60)
+        dirs.grid(row=8, column=0, columnspan=2, sticky=N+E+S+W)
+        self.recFields['Directions'] = dirs
 
         # Ingredients
         tk.Label(master=content, text='Ingredients')\
-        .grid(row=8, column=0, columnspan=2, sticky=N+E+S+W)
+        .grid(row=9, column=0, columnspan=2, sticky=N+E+S+W)
         ing = tk.Frame(master=content)
         resizeSetup(ing, rows=1, cols=1)
-        ing.grid(row=9, column=0, columnspan=2, sticky=N+E+S+W)
+        ing.grid(row=10, column=0, columnspan=2, sticky=N+E+S+W)
         # tk.Text(master=content, height=10, width=60).pack()
         ingGuts = self.ingFrame(master=ing)
         ingGuts.grid(row=0, column=0, sticky=N+E+S+W)
@@ -108,9 +122,9 @@ class mainGui(tk.Frame):
 
         # Buttons (Right of option table)
         # Up/Down buttons to scroll through options
-        up = tk.Button(master=options, text='UP')
+        up = tk.Button(master=options, text='More')
         up.grid(row=1, column=colCount+1, sticky=N+E+S+W)
-        down = tk.Button(master=options, text='DOWN')
+        down = tk.Button(master=options, text='Back')
         down.grid(row=2, column=colCount+1, sticky=N+E+S+W)
 
         # amount field
@@ -139,22 +153,41 @@ class mainGui(tk.Frame):
         current.grid(row=2, column=0, sticky=N+E+S+W)
         currentText = tk.Text(master=current, height=10, width=60)
         currentText.grid(row=0, column=0, sticky=N+E+S+W)
+        self.recFields['Ingredients'] = currentText
 
         add["command"] = lambda: self.addIng(amount, currentText)
 
         return holder
 
     def addIng(self, entry, dest):
+        """Add ingredient to the ingredient text box
+        Input:
+        self.optionsTable: Table from which to pull the data
+        entry: the entry box that contains the amount
+        dest: the text box to put the aquired ingredient
+        """
         logger.debug('Add Ingredient Button pressed')
         amount = entry.get()
-        choice = self.optionsTable.fullData[self.selectedIng]
-        ing = (database.aposFilter(choice['description']), choice['fdcId'], amount)
-        dest.insert(tk.END, ing)
-        dest.insert(tk.END, '\n')
+        if len(amount) <= 0:
+            tkmb.showinfo('Amount Missing', 'The amount box is empty.')
+        else:
+            choice = self.optionsTable.fullData[self.selectedIng]
+            ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')"
+            dest.insert(tk.END, ing)
+            dest.insert(tk.END, '\n')
 
-        pass
 
     def activateRow(self, table, row, col):
+        """Simple function to select a row
+        Input:
+        self.selectedIng: updated the selectedIng with the row clicked
+        table: updates bg of all tiles in table (This should be moved to table logic)
+        row: row of button Clicked
+        col: col of button clicked
+
+        The bg updating logic should be moved to the table class, and here should
+        just call table.activate(row#, row=True)
+        """
         logger.debug(f"row activated at {row}")
         self.selectedIng = row
         for r in table.tiles:
@@ -164,6 +197,18 @@ class mainGui(tk.Frame):
             tile['bg'] = 'grey'
 
     def getIngResults(self, table, query, newQuery=True, up=True):
+        """Ingredient Search Bar callback.
+        Input:
+        self.minimumIngChoice: uses this number to remember state of options
+        self.selectedIng: resets this to clear the activated option
+        table: given table is filled with the query data
+        newQuery: bool, original query passes true, more/less buttons pass false
+        up: bool, whether more or less was pressed (ignored if newQuery is true)
+        Range for options is determined using newQuery, self.minimumIngChoice,
+        and table.rows. Then data is fetched from food.gov, and the table is updated
+        with the response data matching the range generated.
+        """
+
         self.selectedIng = None
         if newQuery:
             self.minimumIngChoice = 0
@@ -192,86 +237,147 @@ class mainGui(tk.Frame):
         table.updateTable(data, fullData=options)
 
 
-    def recipeTable(self, rowCount=1, colCount=6):
+    def recipeTable(self):
         """This is the table view, it displays the database, and allows searching
         the database"""
+        rowCount, colCount = self.recTableDim
         # Acquire data
+        # note, the ingredients and directions are left off due to the number of columns
         header = self.db.getColumns('recipes')[:colCount]
         data = self.db.recipes(first=0, count=rowCount)
+        print(data)
         # Combine into one dataframe
         allData = [header, *data]
+        # pad allData with blank rows if there's not enough data
 
         # Content Window holds all the table elements
         tableFrame = tk.Frame(master=self)
         resizeSetup(tableFrame, rows=2, cols=1)
 
-        search = searchBar(master=tableFrame)
+        search = searchBar(master=tableFrame, func=lambda query: self.searchdb(query))
         search.grid(row=0, column=0, sticky= N+E+S+W)
 
-        tab = table(master=tableFrame,
+        tableCallback = lambda row, col: self.fillFields(recipe(allData[row]))
+        self.recTable = table(master=tableFrame,
                       rows=rowCount+1,
                       cols=colCount,
                       data=allData,
                       innerWidget=tk.Button,
                       header=True,
-                      style='alternating')
-        tab.grid(row=1, column=0, sticky=N+E+S+W)
-
-        # # Table Headers
-        # for col in range(colCount):
-        #     # table.columnconfigure(col, weight=1, minsize=75)
-        #     frame = tk.Frame(
-        #         master=table,
-        #         relief=tk.RAISED,
-        #         borderwidth=0
-        #     )
-        #     resizeSetup(frame)
-        #     frame.grid(row=1, column=col, sticky=N+E+S+W)
-        #     label = tk.Label(
-        #         master=frame,
-        #         text=f"{header[col]}",
-        #     )
-        #     label.grid(row=0, column=0, sticky=N+E+S+W)
-        # # Fill table with data
-        # for row in range(1,rowCount+1):
-        #     # determine row resizing
-        #     # table.rowconfigure(row, weight=1, minsize=50)
-        #
-        #     # determine the row color, switches between white and grey
-        #     color = 'white'
-        #     if row % 2 == 0:
-        #         color = 'grey'
-        #     for col in range(colCount):
-        #         # determine column resizing
-        #         table.columnconfigure(col, weight=1, minsize=75)
-        #         #build frame
-        #         frame = tk.Frame(
-        #             master=table,
-        #             relief=tk.RAISED,
-        #             borderwidth=0,
-        #             bg=color
-        #         )
-        #         resizeSetup(frame)
-        #
-        #         # fill with button
-        #         frame.grid(
-        #             row=row+1,
-        #             column=col,
-        #             ipadx=0,
-        #             ipady=0,
-        #             sticky=N+E+S+W
-        #         )
-        #
-        #         label = tk.Button(
-        #             master=frame,
-        #             text=f"{allData[row][col]}",
-        #             borderwidth=0,
-        #             bg=color)
-        #         label.grid(row=0, column=0, sticky=N+E+S+W)
+                      style='alternating',
+                      buttonCallback=tableCallback)
+        self.recTable.grid(row=1, column=0, sticky=N+E+S+W)
         return tableFrame
 
-    def say_hi(self):
-        print("hi there, everyone!")
+    def searchdb(self, query):
+        row, col = self.recTableDim
+        # get search results
+        data = self.db.search(query)
+        # preppend header list
+        data = [self.db.getColumns('recipes'), *data]
+        # chop off ing and dirs for display
+        dispdata = [l[:col] for l in data]
+        # pass all data to update table
+        self.state["lastTableAction"] = "search"
+        self.state["lastSearch"] = query
+        self.recTable.updateTable(dispdata, fullData=data)
+
+    def fillFields(self, rec):
+        """Function that will fill the recipe fields with the recipe data.
+        Input:
+        rec: recipe object with information to fill fields with
+        """
+        # rec.gets returns a dictionary with all the information in it
+        for field, value in rec.guts().items():
+            # SPOT becomes the starting point for the insert
+            # 0 for entry objects, and "0.0" for text objects
+            SPOT = 0
+            if field == "Directions":
+                SPOT = "0.0"
+                # data preprocessing, each direction should be seperated with a newline
+                value = '\n'.join(value)
+                value += '\n'
+            elif field == "Ingredients":
+                SPOT = "0.0"
+                # data preprocessing, each direction is grouped in three and seperated
+                # with newlines
+                value = '\n'.join([f'{a,b,c}' for a,b,c in value])
+                value += '\n'
+            # clear the field
+            self.recFields[field].delete(SPOT, tk.END)
+            # fill the field
+            self.recFields[field].insert(SPOT, value)
+
+    def clearFields(self):
+        """Simple function that clears all the fields in the recipe view"""
+        for field in self.recFields:
+            # SPOT becomes the starting point for the insert
+            # 0 for entry objects, and "0.0" for text objects
+            SPOT = "0.0" if field in ["Directions", "Ingredients"] else 0
+            # clear the field
+            self.recFields[field].delete(SPOT, tk.END)
+
+    def saveFields(self):
+        """Function that records all the information in the fields and returns
+        a recipe object. The object is sent to the database
+        Input:
+        self.recFields: dictionary of all the recipe fields
+        self.db: database to send the information
+        """
+        # result object, it is a temp holder for the information
+        res = {}
+        # iterate over recFields, field is string name of field being analyzed,
+        # value is the actual text/entry itself
+        for field, value in self.recFields.items():
+            if field == "Directions":
+                # get info
+                text = value.get("0.0", tk.END)
+                # data preprocessing, three things going on
+                # text.split('\n') returns list of lines in textbox
+                # list comprehension goes over the list and removes empty strings
+                # then the list is stringed
+                res[field] = str([val for val in text.split('\n') if len(val) > 0])
+            elif field == "Ingredients":
+                text = value.get("0.0", tk.END)
+                # only the first two things happen here
+                temp = [val for val in text.split('\n') if len(val) > 0]
+                # Additionally, the tuples are interpreted here,
+                # then the whole thing is stringified
+                res[field] = str([recipe.interp(s) for s in temp])
+            else:
+                # else, it's an entry box
+                res[field] = value.get()
+        # create the recipe, the list comprehension is to put the dictionary in order
+        rec = recipe([res[key] for key in recipe.pretty_fields])
+
+        if self.db.recipeExists(rec.name):
+            if tkmb.askyesno("Overwrite?", "This recipe already exists, do you want to overwrite it?"):
+                # save to db
+                self.db.deleteRecipe(rec)
+                self.db.saveRecipe(rec)
+        else:
+            self.db.saveRecipe(rec)
+        self.refreshRecipeTable()
+
+    def refreshRecipeTable(self):
+        logger.debug("Refreshing recipe table")
+        row, col = self.recTableDim
+        if self.state["lastTableAction"] == "default":
+            logger.debug("last state was default")
+            data = self.db.recipes(count=row)
+        elif self.state["lastTableAction"] == "search":
+            logger.debug("last state was search")
+            data = self.db.search(self.state["lastSearch"])
+        # preppend header list
+        data = [self.db.getColumns('recipes'), *data]
+        # chop off ing and dirs for display
+        dispdata = [l[:col] for l in data]
+        self.recTable.updateTable(dispdata, fullData=data)
+
+    def deleteRecipe(self):
+        if tkmb.askyesno("Delete?", "Are you sure you want to delete this recipe?"):
+            self.db.deleteRecipe(self.recFields['Title'])
+
 
 def main():
     root = tk.Tk()
