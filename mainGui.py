@@ -25,7 +25,7 @@ class mainGui(tk.Frame):
         resizeSetup(self, rows=3, cols=1)
         self.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
 
-        self.db = database(returnRecipe=False)
+        self.db = database()
         self.recFields = {}
         self.recTableDim = (5,6)
         self.table = self.recipeTable()
@@ -91,7 +91,8 @@ class mainGui(tk.Frame):
         self.back = tk.Button(master=bar, text="BACK")
         self.quit = tk.Button(master=bar, text="QUIT", fg="red",
                               command=self.master.destroy)
-        self.tableView = tk.Button(master=bar, text="Table View")
+        self.tableView = tk.Button(master=bar, text="Table View",
+                                   command=self.refreshRecipeTable)
 
         resizeSetup(bar, rows=1, cols=5)
         # self.tableView.pack()
@@ -243,11 +244,19 @@ class mainGui(tk.Frame):
         rowCount, colCount = self.recTableDim
         # Acquire data
         # note, the ingredients and directions are left off due to the number of columns
-        header = self.db.getColumns('recipes')[:colCount]
-        data = self.db.recipes(first=0, count=rowCount)
+        header = recipe.pretty_fields[:colCount]
+        recs = self.db.recipes(first=0, count=rowCount)
+        data = []
+        for rec in recs:
+            recInfo = rec.guts()
+            temp = []
+            for col in header:
+                temp.append(recInfo[col])
+            data.append(temp)
+        allData = [header, *data]
+
         print(data)
         # Combine into one dataframe
-        allData = [header, *data]
         # pad allData with blank rows if there's not enough data
 
         # Content Window holds all the table elements
@@ -257,7 +266,7 @@ class mainGui(tk.Frame):
         search = searchBar(master=tableFrame, func=lambda query: self.searchdb(query))
         search.grid(row=0, column=0, sticky= N+E+S+W)
 
-        tableCallback = lambda row, col: self.fillFields(recipe(allData[row]))
+        tableCallback = lambda fullData, **kwargs: self.fillFields(fullData)
         self.recTable = table(master=tableFrame,
                       rows=rowCount+1,
                       cols=colCount,
@@ -265,28 +274,38 @@ class mainGui(tk.Frame):
                       innerWidget=tk.Button,
                       header=True,
                       style='alternating',
-                      buttonCallback=tableCallback)
+                      buttonCallback=tableCallback,
+                      fullData=[header, *recs])
         self.recTable.grid(row=1, column=0, sticky=N+E+S+W)
         return tableFrame
 
     def searchdb(self, query):
         row, col = self.recTableDim
         # get search results
-        data = self.db.search(query)
+        recs = self.db.search(query)
+        data = []
+        header = recipe.pretty_fields[:col]
+        for rec in recs:
+            recInfo = rec.guts()
+            temp = []
+            for col in header:
+                temp.append(recInfo[col])
+            data.append(temp)
+
         # preppend header list
-        data = [self.db.getColumns('recipes'), *data]
-        # chop off ing and dirs for display
-        dispdata = [l[:col] for l in data]
+        data = [header, *data]
         # pass all data to update table
         self.state["lastTableAction"] = "search"
         self.state["lastSearch"] = query
-        self.recTable.updateTable(dispdata, fullData=data)
+        self.recTable.updateTable(data, fullData=[header, *recs])
 
     def fillFields(self, rec):
         """Function that will fill the recipe fields with the recipe data.
         Input:
         rec: recipe object with information to fill fields with
         """
+        logger.debug("fill fields callback with:")
+        logger.debug(rec)
         # rec.gets returns a dictionary with all the information in it
         for field, value in rec.guts().items():
             # SPOT becomes the starting point for the insert
@@ -364,19 +383,30 @@ class mainGui(tk.Frame):
         row, col = self.recTableDim
         if self.state["lastTableAction"] == "default":
             logger.debug("last state was default")
-            data = self.db.recipes(count=row)
+            recs = self.db.recipes(count=row)
         elif self.state["lastTableAction"] == "search":
             logger.debug("last state was search")
-            data = self.db.search(self.state["lastSearch"])
+            recs = self.db.search(self.state["lastSearch"])
+        # create data matrix
+        data = []
+        header = recipe.pretty_fields[:col]
+        for rec in recs:
+            recInfo = rec.guts()
+            temp = []
+            for col in header:
+                temp.append(recInfo[col])
+            data.append(temp)
+
         # preppend header list
-        data = [self.db.getColumns('recipes'), *data]
+        data = [header, *data]
         # chop off ing and dirs for display
-        dispdata = [l[:col] for l in data]
-        self.recTable.updateTable(dispdata, fullData=data)
+        self.recTable.updateTable(data, fullData=recs)
 
     def deleteRecipe(self):
         if tkmb.askyesno("Delete?", "Are you sure you want to delete this recipe?"):
-            self.db.deleteRecipe(self.recFields['Title'])
+            self.db.deleteRecipe(self.recFields['Title'].get())
+            self.clearFields()
+            self.refreshRecipeTable()
 
 
 def main():

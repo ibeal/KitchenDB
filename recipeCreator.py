@@ -127,7 +127,7 @@ class recipe:
             start = splits[index]+1
             end = splits[index+1]
             lines.append(line[start:end])
-        logging.debug(f'Split returns: {lines}')
+        # logging.debug(f'Split returns: {lines}')
         return lines
 
     @staticmethod

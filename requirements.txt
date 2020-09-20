@@ -1,0 +1,13 @@
+altgraph
+certifi
+chardet
+future
+idna
+pefile
+pyinstaller
+pyinstaller-hooks-contrib
+PySimpleGUI
+pywin32-ctypes
+PyYAML
+requests
+urllib3

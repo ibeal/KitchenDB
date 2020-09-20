@@ -1,8 +1,10 @@
-
+import logging
 from KitchenGUI.helpers import resizeSetup
 import tkinter as tk
 from tkinter import N,E,S,W
 from copy import deepcopy,copy
+
+logger = logging.getLogger('Debug Log')
 
 class table(tk.Frame):
     def __init__(self,
@@ -95,7 +97,7 @@ class table(tk.Frame):
                         bg=color)
                     # if using button, a callback can be supplied
                     if self.innerWidget == tk.Button:
-                        self.tiles[row][col]['command'] = lambda row=row, col=col: self.callback(row=row, col=col)
+                        self.tiles[row][col]['command'] = lambda row=row, col=col: self.callback(row=row, col=col, data=self.data[row], fullData=self.fullData[row])
                     self.tiles[row][col].grid(row=row, column=col, sticky=N+E+S+W)
                 except:
                     self.tiles[row][col] = self.innerWidget(
@@ -108,12 +110,15 @@ class table(tk.Frame):
     def updateTable(self, data, fullData=None):
         """updates the table with new data"""
         # updates the data property
+        logger.debug(f'Updating table with: {data}')
+        logger.debug(f'fullData is: {fullData}')
+        self.content.destroy()
+        self.callback=self.callback
         self.data = data
         if not fullData:
             self.fullData = data
         else:
             self.fullData = fullData
-        self.content.destroy()
         self.tiles = [['[BLANK]'] * self.cols for i in range(self.rows)]
         self.content = tk.Frame(master=self)
         resizeSetup(self.content, rows=self.rows, cols=self.cols)
