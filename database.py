@@ -10,6 +10,7 @@ class database:
         self.conn = sql.connect(source)
         self.cur = self.conn.cursor()
         self.returnRecipe = returnRecipe
+        self.createTable()
 
     def __del__(self):
         self.conn.close()
@@ -77,8 +78,7 @@ class database:
         #     self.create_from_yaml(f)
 
 
-    def saveRecipe(self, rec):
-        table = 'recipes'
+    def createTable(self, table = 'recipes'):
         # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
         #   rating integer, ingredients string, directions string'
         tabfields = ''
@@ -89,6 +89,10 @@ class database:
 
         logger.debug('executing: ' + query)
         self.cur.execute(query)
+        self.conn.commit()
+
+    def saveRecipe(self, rec):
+        self.createTable()
 
         query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
         logger.debug('executing: ' + query)
@@ -100,7 +104,7 @@ class database:
         ing = "{str(database.aposFilter(rec.ingredients))}"
         dirs = "{str(database.aposFilter(rec.directions))}"
         return tuple(rec.name, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
-        
+
     @staticmethod
     def aposFilter(dirty):
         """A function that takes a string and replaces all apostrophes with the global
