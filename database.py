@@ -1,11 +1,15 @@
-from config import *
 from recipeCreator import *
-global dataFields
+import logging
+logger = logging.getLogger('Debug Log')
 
 class database:
-    def __init__(self, source='KitchenDB'):
+    APOSREPLACE = ';:'
+    findApos = re.compile("'")
+    fillApos = re.compile(APOSREPLACE)
+    def __init__(self, returnRecipe=True, source='KitchenDB'):
         self.conn = sql.connect(source)
         self.cur = self.conn.cursor()
+        self.returnRecipe = returnRecipe
 
     def __del__(self):
         self.conn.close()
@@ -34,17 +38,37 @@ class database:
         if last:
             count = last - first
         res = self.cur.execute(f"SELECT * FROM recipes LIMIT {first}, {count}")
+        if self.returnRecipe:
+            return [recipe(i) for i in res]
         return [i for i in res]
 
+    def recipeExists(self, name):
+        if isinstance(name, recipe):
+            name = name.name
+        logger.debug(f'checking for {name}')
+        res = self.cur.execute(f"SELECT * FROM recipes WHERE name='{name}'")
+        return len(list(res)) > 0
+
+    def deleteRecipe(self, name):
+        if isinstance(name, recipe):
+            name = name.name
+        logger.debug(f'deleting recipe {name}')
+        res = self.cur.execute(f"DELETE FROM recipes WHERE name='{name}'")
+        self.conn.commit()
+
     def search(self, query):
+        logger.debug(f'searching db for {query}')
         res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
+        if self.returnRecipe:
+            return [recipe(i) for i in res]
         return [i for i in res]
 
     def getColumns(self, table):
+        logger.debug(f'DEPRECATED getColumns CALLED')
         res = self.cur.execute(f"SELECT * FROM {table}")
         return [info[0] for info in res.description]
 
-    def addNew(self):
+    def addNew(self, rec):
         rec = recipe()
         self.cur.execute('drop table if exists recipes')
         self.saveRecipe(rec)
@@ -58,7 +82,7 @@ class database:
         # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
         #   rating integer, ingredients string, directions string'
         tabfields = ''
-        for v in dataFields:
+        for v in recipe.dataFields:
             tabfields += f'{v}, '
         tabfields = tabfields[:-2]
         query = 'create table if not exists ' + table + ' (' + tabfields + ')'
@@ -66,12 +90,36 @@ class database:
         logger.debug('executing: ' + query)
         self.cur.execute(query)
 
-        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(rec.ingredients)}", "{str(rec.directions)}", "{rec.source}")'
+        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
 
+    def pack(rec):
+        # TODO: figure out these conversions
+        ing = "{str(database.aposFilter(rec.ingredients))}"
+        dirs = "{str(database.aposFilter(rec.directions))}"
+        return tuple(rec.name, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
+        
+    @staticmethod
+    def aposFilter(dirty):
+        """A function that takes a string and replaces all apostrophes with the global
+        APOSREPLACE value, currently ';:'. Inverse of aposFiller."""
+        if not isinstance(dirty, str):
+            logger.debug(f'{dirty} is not a string. aposFilter aborting...')
+            return dirty
+        clean = database.findApos.sub(database.APOSREPLACE, dirty)
+        return clean
 
+    @staticmethod
+    def aposFiller(clean):
+        """A function that takes a string and replaces all instances of COMMAREPLACE,
+        currently ';:', with an apostrophe. Inverse of aposFilter."""
+        if not isinstance(clean, str):
+            logger.debug(f'{clean} is not a string. aposFiller aborting...')
+            return clean
+        dirty = database.fillApos.sub("'", clean)
+        return dirty
 
     def create_from_csv(self, f):
         """A function that creates tables from csv files"""
@@ -103,3 +151,5 @@ class database:
 if __name__ == '__main__':
     # Testing
     db = database()
+    print(db.recipeExists('Peanut Butter Sandwich'))
+    print(db.recipeExists('bogus'))
