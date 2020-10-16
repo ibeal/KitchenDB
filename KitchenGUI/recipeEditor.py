@@ -1,7 +1,7 @@
 import logging
-# import PySimpleGUI as sg
+import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
-import PySimpleGUIQt as sg
+# import PySimpleGUIQt as sg
 import KitchenGUI.searchBar as search
 from database import *
 from recipeCreator import *
