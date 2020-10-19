@@ -34,7 +34,7 @@ class recipeEditor(sg.Column):
                 *self.labeledEntry('Category',size=(10,)),
                 *self.labeledEntry('Rating',size=(5,))
             ],
-            self.labeledEntry('Source')
+            [*self.labeledEntry('Source'), sg.Button('AutoFill', key="-AUTOFILL-")]
         ]
         # self.master.recFields = {field: simpleInputs[field][1] for field in simpleFields}
 

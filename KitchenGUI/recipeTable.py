@@ -40,7 +40,10 @@ class recipeTable(sg.Column):
                                 key=self.tableKey)
         # col = sg.Column(layout = tab, scrollable=True)
         self.master.expands['xy'].append(self.recTable)
-        layout = [search.searchBar(self.master,key='RECIPE'),
-                  [self.recTable]]
+        layout = [
+            [sg.T('Sort By'), sg.Combo(values=['Title', "Category", 'Rating'], key='-FILTER-')],
+            [*search.searchBar(self.master,key='RECIPE'), sg.Button('Add New Recipe', key='-ADDNEW-')],
+            [self.recTable]
+        ]
         # return sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')
         return layout
