@@ -43,7 +43,7 @@ class database:
             return [recipe(i) for i in res]
         return [i for i in res]
 
-    def recipeExists(self, name):
+    def recipeExists(self, name, source):
         if isinstance(name, recipe):
             name = name.name
         logger.debug(f'checking for {name}')
@@ -91,9 +91,11 @@ class database:
         self.cur.execute(query)
         self.conn.commit()
 
-    def saveRecipe(self, rec):
-        self.createTable()
-
+    def saveRecipe(self, rec, table = 'recipes'):
+        self.createTable(table)
+        if len(rec.name) <= 0:
+                print('Error saving recipe to db, skipping...')
+                return
         query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)

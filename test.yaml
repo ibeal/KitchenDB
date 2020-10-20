@@ -1,0 +1,15 @@
+---
+fields:
+- Peanut Butter Sandwich
+- 5
+- 0
+- 1 Sandwich
+- Lunch
+- -1
+- '[(''BREAD'', 473832, ''2 Slices''), (''Peanut butter'', 784416, ''3 T''), (''JAM'',
+  389529, ''3 T'')]'
+- '[''1. Spread PB on Sandwich'', ''2. Spread Jam on Sandwich'', ''3. Enjoy!'']'
+- ''
+tabfields: name string, prep_time integer, cook_time integer, yield string, category
+  string, rating integer, ingredients list, directions list, source string
+tabname: recipes

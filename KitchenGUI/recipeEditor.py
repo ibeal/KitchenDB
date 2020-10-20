@@ -6,17 +6,26 @@ import KitchenGUI.searchBar as search
 from database import *
 from recipeCreator import *
 from apiCalls import *
+logger = logging.getLogger('Debug Log')
 
-class recipeEditor(sg.Column):
+class recipeEditor(sg.Tab):
 
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, title, master, *args, ingTableKey = '-OPTION-TABLE-', **kwargs):
         self.master = master
-        super().__init__(layout=self.recipeEditor(), *args, **kwargs)
+        self.ingTableKey = ingTableKey
+        self.api = self.master.api
+        self.db = self.master.db
+        self.activeRecipe = None
+        self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
+        super().__init__(title, layout=self.recipeEditor(), *args, **kwargs)
 
     def labeledEntry(self,label,key=None,**kwargs):
         box = sg.In(key=f'-{key if key else label}-BOX-',**kwargs)
-        self.master.expands['x'].append(box)
         return [sg.T(label),box]
+
+    def update(self, data):
+        self.table = data
+        self.ingTable.update(data)
 
     def recipeEditor(self):
         simpleFields = [field for field in recipe.pretty_fields]
@@ -25,14 +34,14 @@ class recipeEditor(sg.Column):
         simpleInputs = [
             self.labeledEntry('Title'),
             [
-                *self.labeledEntry('Prep Time',size=(10,)),
-                *self.labeledEntry('Cook Time',size=(10,)),
-                *self.labeledEntry('Total Time',size=(5,))
+                *self.labeledEntry('Prep Time',size=(10,1)),
+                *self.labeledEntry('Cook Time',size=(10,1)),
+                *self.labeledEntry('Total Time',size=(5,1))
             ],
             [
-                *self.labeledEntry('Yield',size=(10,)),
-                *self.labeledEntry('Category',size=(10,)),
-                *self.labeledEntry('Rating',size=(5,))
+                *self.labeledEntry('Yield',size=(10,1)),
+                *self.labeledEntry('Category',size=(10,1)),
+                *self.labeledEntry('Rating',size=(5,1))
             ],
             [*self.labeledEntry('Source'), sg.Button('AutoFill', key="-AUTOFILL-")]
         ]
@@ -47,23 +56,23 @@ class recipeEditor(sg.Column):
                                 headings=['Food', 'Company', 'Ingredients'],
                                 col_widths=[10, 25, 40],
                                 auto_size_columns=False,
-                                key='-OPTION-TABLE-')
+                                key=self.ingTableKey)
         self.master.expands['x'].append(self.ingTable)
 
-        dir = sg.Multiline(key='-Directions-BOX-',size=(None,10))
+        dir = sg.Multiline(key='-Directions-BOX-',size=(50,10))
         self.master.expands['xy'].append(dir)
         # self.master.recFields['Directions'] = dir
 
-        ing = sg.Multiline(key='-Ingredients-BOX-',size=(None,10))
+        ing = sg.Multiline(key='-Ingredients-BOX-',size=(50,10))
         self.master.expands['xy'].append(ing)
         # self.master.recFields['Ingredients'] = ing
 
-        addbox = sg.In('Amount',key='-AMOUNT-')
+        addbox = [sg.T('Amount'), sg.In(key='-AMOUNT-')]
         self.master.expands['x'].append(addbox)
         layout = [
                 [sg.Button('Clear',key='-CLEAR-RECIPE-'),
                  sg.Button('Delete Recipe',key='-DELETE-RECIPE-'),
-                 sg.Button('Print Recipe', key='-PRINT-RECIPE-'),
+                 sg.Button('View Recipe', key='-VIEW-RECIPE-'),
                  sg.Button('Save',key='-SAVE-RECIPE-')],
                 *simpleInputs,
                 [sg.T('Directions')],
@@ -71,10 +80,226 @@ class recipeEditor(sg.Column):
                 [sg.T('Ingredients')],
                 search.searchBar(self.master, key='INGREDIENT'),
                 [self.ingTable],
-                [addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
+                [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
                 [ing]
         ]
 
         # col = sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')
         # self.master.expands['xy'].append(col)
         return layout
+
+    def handle(self, event, values):
+        if event =='-VIEW-RECIPE-':
+            # recipe is saved then sent to viewer
+            self.saveFields()
+            # self.recipe_modal(self.getFields())
+            return False
+        elif event == '-SAVE-RECIPE-':
+            self.saveFields()
+            return True
+        elif event == '-DELETE-RECIPE-':
+            # delete recipe and return to table view
+            self.deleteRecipe()
+            # self.master.switchTabs('-TABLE-')
+            return False
+        elif event == '-CLEAR-RECIPE-':
+            self.clearFields()
+            return True
+        elif event == '-INGREDIENT-SBUTTON-':
+            self.getIngResults(values['-INGREDIENT-SBOX-'])
+            return True
+        elif event == '-ADD-INGREDIENT-':
+            print(values)
+            self.addIng(values[self.ingTableKey][0], values['-AMOUNT-'])
+            return True
+        return False
+
+    def fillFields(self, rec):
+        """Function that will fill the recipe fields with the recipe data.
+        Input:
+        rec: recipe object with information to fill fields with
+        """
+        logger.debug("fill fields callback with:")
+        logger.debug(rec)
+        self.activeRecipe = rec
+        # rec.gets returns a dictionary with all the information in it
+        for field, value in rec.guts().items():
+            if field == "Directions":
+                # data preprocessing, each direction should be seperated with a newline
+                value = '\n'.join(value)
+                value += '\n'
+            elif field == "Ingredients":
+                # data preprocessing, each direction is grouped in three and seperated
+                # with newlines
+                value = '\n'.join([f'{a,b,c}' for a,b,c in value])
+                value += '\n'
+            # clear the field
+            # self.recFields[field].delete(SPOT, tk.END)
+            # fill the field
+            self.master.window[self.recFields[field]].update(value=value)
+            # self.master.window.fill({self.recFields[field]: value})
+
+    def addIng(self, choice, entry):
+        """Add ingredient to the ingredient text box
+        Input:
+        self.optionsTable: Table from which to pull the data
+        entry: the entry box that contains the amount
+        dest: the text box to put the aquired ingredient
+        """
+        logger.debug('Add Ingredient Button pressed')
+        amount = entry
+        if len(amount) <= 0:
+            sg.popup('The amount box is empty.',title='Amount Missing')
+        else:
+            choice = self.ingTableData[choice]
+            ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
+            self.master.window[self.recFields['Ingredients']].update(value=ing, append=True)
+
+    def clearFields(self):
+        """Simple function that clears all the fields in the recipe view"""
+        for field in self.recFields:
+            # clear the field
+            self.master.window[self.recFields[field]].update(value='')
+
+    def getFields(self):
+        """Function that records all the information in the fields and returns
+        a recipe object.
+        Input:
+        self.recFields: dictionary of all the recipe fields
+        Output:
+        recipe: recipe created from all the fields
+        """
+        # result object, it is a temp holder for the information
+        res = {}
+        # iterate over recFields, field is string name of field being analyzed,
+        # value is the actual text/entry itself
+        for field in recipe.pretty_fields:
+            value = self.master.window[self.recFields[field]]
+            if field == "Directions":
+                # get info
+                text = value.get()
+                # data preprocessing, three things going on
+                # text.split('\n') returns list of lines in textbox
+                # list comprehension goes over the list and removes empty strings
+                # then the list is stringed
+                res[field] = str([val for val in text.split('\n') if len(val) > 0])
+            elif field == "Ingredients":
+                text = value.get()
+                # only the first two things happen here
+                temp = [val for val in text.split('\n') if len(val) > 0]
+                # Additionally, the tuples are interpreted here,
+                # then the whole thing is stringified
+                res[field] = str([recipe.interp(s) for s in temp])
+            else:
+                # else, it's an entry box
+                res[field] = value.get()
+        # create the recipe, the list comprehension is to put the dictionary in order
+
+        # return recipe([res[key] for key in recipe.pretty_fields])
+        return recipe(res) if len(res['Title']) > 0 else None
+
+    def saveFields(self):
+        """Function that records all the information in the fields and returns
+        a recipe object. The object is sent to the database
+        Input:
+        self.recFields: dictionary of all the recipe fields
+        self.db: database to send the information
+        """
+
+        # result object, it is a temp holder for the information
+        res = {}
+        # iterate over recFields, field is string name of field being analyzed,
+        # value is the actual text/entry itself
+        for field in recipe.pretty_fields:
+            value = self.master.window[self.recFields[field]]
+            if not field in ['Source']:
+                if len(value.get()) <= 0:
+                    sg.PopupError(f"Missing the {field} field!")
+                    return
+            if field == "Directions":
+                # get info
+                text = value.get()
+                # data preprocessing, three things going on
+                # text.split('\n') returns list of lines in textbox
+                # list comprehension goes over the list and removes empty strings
+                # then the list is stringed
+                res[field] = str([val for val in text.split('\n') if len(val) > 0])
+            elif field == "Ingredients":
+                text = value.get()
+                # only the first two things happen here
+                temp = [val for val in text.split('\n') if len(val) > 0]
+                # Additionally, the tuples are interpreted here,
+                # then the whole thing is stringified
+                res[field] = str([recipe.interp(s) for s in temp])
+            else:
+                # else, it's an entry box
+                res[field] = value.get()
+        # create the recipe, the list comprehension is to put the dictionary in order
+        # rec = recipe([res[key] for key in recipe.pretty_fields])
+        rec = recipe(res)
+        if self.db.recipeExists(rec.name, rec.source):
+            if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
+                # save to db
+                self.db.deleteRecipe(rec)
+                self.db.saveRecipe(rec)
+        else:
+            self.db.saveRecipe(rec)
+
+    def deleteRecipe(self):
+        if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
+            self.db.deleteRecipe(self.master.window[self.recFields['Title']].get())
+            self.clearFields()
+
+    def searchdb(self, query):
+        row, col = self.recTableDim
+        # get search results
+        recs = self.db.search(query)
+        data = []
+        header = recipe.pretty_fields[:col]
+        for rec in recs:
+            recInfo = rec.guts()
+            temp = []
+            for col in header:
+                temp.append(recInfo[col])
+            data.append(temp)
+
+        # preppend header list
+        # data = [header, *data]
+        # pass all data to update table
+        self.state["lastTableAction"] = "search"
+        self.state["lastSearch"] = query
+        self.tableData = recs
+        self.recTable.update(values = data)
+
+    def recipe_modal(self, rec):
+        sg.popup(rec.__str__());
+
+    def getIngResults(self, query, limit=25):
+        """Ingredient Search Bar callback.
+        Input:
+        self.minimumIngChoice: uses this number to remember state of options
+        self.selectedIng: resets this to clear the activated option
+        table: given table is filled with the query data
+        newQuery: bool, original query passes true, more/less buttons pass false
+        up: bool, whether more or less was pressed (ignored if newQuery is true)
+        Range for options is determined using newQuery, self.minimumIngChoice,
+        and table.rows. Then data is fetched from food.gov, and the table is updated
+        with the response data matching the range generated.
+        """
+
+        logger.debug(f'Searching for ingredients. query={query}')
+        response = self.api.apiSearchFood(query)
+        options = response.json()['foods'][:limit]
+        # data = [['[BLANK]'] * table.cols for i in range(table.rows)]
+        data = []
+        for i in range(len(options)):
+            data.append([])
+            data[i].append(options[i]["description"][:25])
+            with suppress(KeyError):
+                if options[i]['dataType'] == 'Branded':
+                    data[i].append(options[i]["brandOwner"][:25])
+                    data[i].append(options[i]["ingredients"][:43])
+                else:
+                    data[i].append(options[i]["additionalDescriptions"][:43])
+        self.ingTableData = options
+        self.ingTable.update(values=data)

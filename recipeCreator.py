@@ -2,7 +2,7 @@ import csv, json, yaml, sys, logging, re
 import sqlite3 as sql
 import requests as rq
 from contextlib import suppress
-global logger
+logger = logging.getLogger('Debug Log')
 
 class recipe:
     dataFields = ['name string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
@@ -53,6 +53,10 @@ class recipe:
 
         if isinstance(data, list) or isinstance(data, tuple):
             self.name = data[0]
+            if len(self.name) <= 0:
+                print('Error creating recipe, creating default')
+                self.new()
+                return
             self.prep_time = int(data[1])
             self.cook_time = int(data[2])
             self.total_time = self.prep_time + self.cook_time
@@ -64,6 +68,10 @@ class recipe:
             self.source = data[8]
         elif isinstance(data, dict):
             self.name = data['Title']
+            if len(self.name) <= 0:
+                print('Error creating recipe, creating default')
+                self.new()
+                return
             self.prep_time = int(data['Prep Time'])
             self.cook_time = int(data['Cook Time'])
             self.total_time = self.prep_time + self.cook_time
@@ -75,6 +83,19 @@ class recipe:
             self.source = data['Source']
 
     def new(self):
+        """Function that builds the recipe.yaml file from user input"""
+        self.name = ""
+        self.prep_time = 0
+        self.cook_time = 0
+        self.total_time = self.prep_time + self.cook_time
+        self.yieldAmnt = ""
+        self.category = ""
+        self.rating = 0
+        self.ingredients = ""
+        self.directions = ""
+        self.source = ""
+
+    def cli_new(self):
         """Function that builds the recipe.yaml file from user input"""
         self.name = input('Please enter the recipe name: ')
         if self.name == 'q':
@@ -105,6 +126,13 @@ class recipe:
             f.truncate(0) # clear file
             f.write('---\n')
             yaml.dump(yam, f)
+            logger.debug(f'Output to Yaml completed. File: {filename}')
+
+    def outputToTxt(self, filename='recipe.yaml'):
+        """function that generates a recipe.txt file from given parameters"""
+        with open(filename,'a') as f:
+            f.truncate(0) # clear file
+            f.write(self.__str__())
             logger.debug(f'Output to Yaml completed. File: {filename}')
 
     @staticmethod
