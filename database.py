@@ -43,23 +43,30 @@ class database:
             return [recipe(i) for i in res]
         return [i for i in res]
 
-    def recipeExists(self, name, source):
+    def recipeExists(self, name, source=""):
         if isinstance(name, recipe):
-            name = name.name
+            name = name.title
         logger.debug(f'checking for {name}')
-        res = self.cur.execute(f"SELECT * FROM recipes WHERE name='{name}'")
+        res = self.cur.execute(f"SELECT * FROM recipes WHERE title='{name}'")
         return len(list(res)) > 0
 
     def deleteRecipe(self, name):
         if isinstance(name, recipe):
-            name = name.name
+            name = name.title
         logger.debug(f'deleting recipe {name}')
-        res = self.cur.execute(f"DELETE FROM recipes WHERE name='{name}'")
+        res = self.cur.execute(f"DELETE FROM recipes WHERE title='{name}'")
         self.conn.commit()
 
-    def search(self, query):
+    def search(self, query, sortby=None):
         logger.debug(f'searching db for {query}')
-        res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
+        # res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
+        command = f"SELECT * FROM recipes WHERE title LIKE '%'||?||'%'"
+        if sortby:
+            command += f' ORDER BY ?'
+            res = self.cur.execute(command, (query,sortby))
+        else:
+            res = self.cur.execute(command, (query,))
+
         if self.returnRecipe:
             return [recipe(i) for i in res]
         return [i for i in res]
@@ -81,6 +88,7 @@ class database:
     def createTable(self, table = 'recipes'):
         # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
         #   rating integer, ingredients string, directions string'
+        # self.cur.execute('drop table ' + table)
         tabfields = ''
         for v in recipe.dataFields:
             tabfields += f'{v}, '
@@ -93,10 +101,10 @@ class database:
 
     def saveRecipe(self, rec, table = 'recipes'):
         self.createTable(table)
-        if len(rec.name) <= 0:
+        if len(rec.title) <= 0:
                 print('Error saving recipe to db, skipping...')
                 return
-        query = f'insert into {table} values ("{rec.name}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
+        query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
@@ -105,7 +113,7 @@ class database:
         # TODO: figure out these conversions
         ing = "{str(database.aposFilter(rec.ingredients))}"
         dirs = "{str(database.aposFilter(rec.directions))}"
-        return tuple(rec.name, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
+        return tuple(rec.title, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
 
     @staticmethod
     def aposFilter(dirty):
@@ -143,13 +151,13 @@ class database:
     def create_from_yaml(self, f):
         """A function that creates tables from yaml files"""
         tab = yaml.load(f,Loader=yaml.FullLoader)
-        query = 'create table if not exists ' + tab['tabname'] + ' (' + tab['tabfields'] + ')'
-        logger.debug('executing: ' + query)
-        self.cur.execute(query)
+        # query = 'create table if not exists ' + tab['tabname'] + ' (' + tab['tabfields'] + ')'
+        # logger.debug('executing: ' + query)
+        # self.cur.execute(query)
 
-        name, prep_time, cook_time, yieldAmnt, category, rating, ingredients, directions, source = tab['fields']
+        title, prep_time, cook_time, yieldAmnt, category, rating, ingredients, directions, source = tab['fields']
         table = tab['tabname']
-        query = f'insert into {table} values ("{name}", {prep_time}, {cook_time}, "{yieldAmnt}", "{category}", {rating}, "{ingredients}", "{directions}", "{source}")'
+        query = f'insert into {table} values ("{title}", {prep_time}, {cook_time}, "{yieldAmnt}", "{category}", {rating}, "{ingredients}", "{directions}", "{source}")'
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
@@ -157,5 +165,3 @@ class database:
 if __name__ == '__main__':
     # Testing
     db = database()
-    print(db.recipeExists('Peanut Butter Sandwich'))
-    print(db.recipeExists('bogus'))

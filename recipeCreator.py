@@ -5,20 +5,23 @@ from contextlib import suppress
 logger = logging.getLogger('Debug Log')
 
 class recipe:
-    dataFields = ['name string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
+    dataFields = ['title string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
       'rating integer', 'ingredients list', 'directions list', 'source string']
-    # fields = ['Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating', 'Source',]
+    ugly_fields = ['title', 'prep_time', 'cook_time', 'yield', 'category', 'rating', 'ingredients', 'directions', 'source']
     pretty_fields = ['Title', 'Prep Time', 'Cook Time', 'Total Time','Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source']
-    def __init__(self, data=None):
-        if not data:
-            self.new()
-        else:
+    def __init__(self, data=None, file=None):
+        if data:
             self.edit(data)
+        elif file:
+            self.readIn(file)
+        else:
+            self.new()
+
 
     def __str__(self):
         ingr = ''
         dir = ''
-        info = f'{self.name}\nYields: {self.yieldAmnt} | Category: {self.category} | Rating: {self.rating}\n' +\
+        info = f'{self.title}\nYields: {self.yieldAmnt} | Category: {self.category} | Rating: {self.rating}\n' +\
             f'Time - Prep: {self.prep_time} | Cook: {self.cook_time} | Total: {self.prep_time + self.cook_time}'
         for food, id, amount in self.ingredients:
             ingr += f'{food}: {amount}\n'
@@ -28,7 +31,7 @@ class recipe:
         return f'{info}\n\n{ingr}\n{dir}'
 
     def guts(self):
-        return {"Title": self.name,
+        return {"Title": self.title,
                 "Prep Time": self.prep_time,
                 "Cook Time": self.cook_time,
                 "Total Time": self.total_time,
@@ -52,8 +55,8 @@ class recipe:
         '')]"""
 
         if isinstance(data, list) or isinstance(data, tuple):
-            self.name = data[0]
-            if len(self.name) <= 0:
+            self.title = data[0]
+            if len(self.title) <= 0:
                 print('Error creating recipe, creating default')
                 self.new()
                 return
@@ -67,8 +70,8 @@ class recipe:
             self.directions = self.interp(data[7])
             self.source = data[8]
         elif isinstance(data, dict):
-            self.name = data['Title']
-            if len(self.name) <= 0:
+            self.title = data['Title']
+            if len(self.title) <= 0:
                 print('Error creating recipe, creating default')
                 self.new()
                 return
@@ -84,7 +87,7 @@ class recipe:
 
     def new(self):
         """Function that builds the recipe.yaml file from user input"""
-        self.name = ""
+        self.title = ""
         self.prep_time = 0
         self.cook_time = 0
         self.total_time = self.prep_time + self.cook_time
@@ -95,10 +98,17 @@ class recipe:
         self.directions = ""
         self.source = ""
 
+    def readIn(self, fname):
+        with open(fname, 'r') as f:
+            type = fname.split('.')[-1]
+            if type == 'yaml':
+                tab = yaml.load(f,Loader=yaml.FullLoader)
+                self.edit(tab['fields'])
+
     def cli_new(self):
         """Function that builds the recipe.yaml file from user input"""
-        self.name = input('Please enter the recipe name: ')
-        if self.name == 'q':
+        self.title = input('Please enter the recipe name: ')
+        if self.title == 'q':
             exit()
         # FIXME: error checking on input
         self.prep_time = int(input('Please enter the prep time (minutes): '))
@@ -112,21 +122,22 @@ class recipe:
         self.source = input('Add a source, or leave blank: ')
         # self.outputToYaml()
 
-    def outputToYaml(self, filename='recipe.yaml'):
+    def outputToYaml(self):
         """function that generates a recipe.yaml file from given parameters"""
         tabfields = ''
         for v in recipe.dataFields:
             tabfields += f'{v}, '
         tabfields = tabfields[:-2]
+        # 'tabfields': tabfields,\
         yam = {'tabname': 'recipes', \
-                'tabfields': tabfields,\
-                  'fields': [self.name, self.prep_time, self.cook_time, self.yieldAmnt, self.category, self.rating, str(self.ingredients), str(self.directions), self.source]
+                  'fields': [self.title, self.prep_time, self.cook_time, self.yieldAmnt, self.category, self.rating, str(self.ingredients), str(self.directions), self.source]
                 }
-        with open(filename,'a') as f:
-            f.truncate(0) # clear file
-            f.write('---\n')
-            yaml.dump(yam, f)
-            logger.debug(f'Output to Yaml completed. File: {filename}')
+        # with open(filename,'a') as f:
+        #     f.truncate(0) # clear file
+        #     f.write('---\n')
+        #     yaml.dump(yam, f)
+        #     logger.debug(f'Output to Yaml completed. File: {filename}')
+        return yam
 
     def outputToTxt(self, filename='recipe.yaml'):
         """function that generates a recipe.txt file from given parameters"""

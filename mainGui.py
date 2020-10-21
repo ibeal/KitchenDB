@@ -1,4 +1,4 @@
-import logging
+import logging, os.path, json
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
@@ -21,12 +21,13 @@ class gui:
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         self.recTableDim = (20,6)
         self.tableData = None
-        self.prefs = {'recipeFolder': '.\\recipes\\', 'theme': 'Dark Blue 1'}
+        self.prefFile = 'userSettings.config'
+        self.prefs = self.importPrefs()
         sg.theme(self.prefs['theme'])
 
         self.expands = {'x':[], 'y':[], 'xy':[]}
-        self.menu_def = [['&File', ['&Open', '&Save', '---', 'Properties', 'E&xit'  ]],
-        ['&Edit', ['Paste', ['Special', 'Normal',], 'Undo'],],
+        self.menu_def = [['&File', ['Import...', ['Recipe', 'Database'], '&Save', '---', 'E&xit'  ]],
+        ['&Edit', ['Preferences'],],
         ['&Help', '&About...'],]
         self.state = {"lastTableAction": "default"}
 
@@ -46,7 +47,7 @@ class gui:
             [self.panes['-VIEWER-']]
         ], key="-TABS-")
         self.tabHolder = self.panes['-TABS-']
-        self.expands['xy'].append(self.tabHolder)
+        # self.expands['xy'].append(self.tabHolder)
 
         # Tabbed Layout
         layout = [
@@ -64,6 +65,7 @@ class gui:
         logger.debug('Main Loop Started')
         while True:
             event, values = self.window.read()
+            logger.debug(f'event was {event}')
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
             if self.panes[values['-TABS-']].handle(event, values):
@@ -82,6 +84,26 @@ class gui:
                 rec = self.panes['-EDITOR-'].getFields()
                 self.activateRecipe(rec)
                 self.panes['-VIEWER-'].Select()
+            elif event == 'Preferences':
+                self.prefEditor()
+            elif event == 'Recipe':
+                # import recipe
+                recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True).split(';')
+                for file in recipe_files:
+                    new_rec = recipe(file=file)
+                    if self.db.recipeExists(new_rec):
+                        if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
+                            # save to db
+                            self.db.deleteRecipe(new_rec)
+                            self.db.saveRecipe(new_rec)
+                    else:
+                        self.db.saveRecipe(new_rec)
+                self.panes['-TABLE-'].Select()
+                self.panes['-TABLE-'].refreshRecipeTable()
+            elif event == 'Database':
+                # import database
+                pass
+
 
         self.window.close()
 
@@ -95,6 +117,49 @@ class gui:
         self.panes['-EDITOR-'].fillFields(rec)
         self.panes['-VIEWER-'].fillFields(rec)
 
+    def savePrefs(self):
+        with open(self.prefFile, 'w') as f:
+            json.dump(self.prefs, f)
+
+    def importPrefs(self):
+        if not os.path.exists(self.prefFile):
+            logger.debug('config not found, using default')
+            return {'recipeFolder': os.getcwd() + '/recipes/', 'theme': 'Dark Blue 1'}
+        with open(self.prefFile, 'r') as f:
+            logger.debug('config found, using custom settings')
+            return json.load(f)
+
+    def prefEditor(self):
+
+        layout = [[sg.Text('Theme Browser')],
+          [sg.Combo(default_value=self.prefs['theme'], values=sg.theme_list(),
+                    size=(20, 12), key='-LIST-', enable_events=True)],
+          [
+            sg.In(default_text=self.prefs['recipeFolder'], key='-PREF-FOLDER-'),
+            sg.FolderBrowse('Browse')
+          ],
+          [sg.Button('Close'), sg.Button('Apply')]]
+
+        window = sg.Window('Theme Browser', layout)
+
+        while True:
+            event, values = window.read()
+            # logger.debug(f'prefEditor event is {event}')
+            if event in (sg.WIN_CLOSED, 'Close'):
+                break
+            elif event == '-LIST-':
+                # logger.debug(f'list value is {values["-LIST-"]}')
+                self.prefs['theme'] = values['-LIST-']
+                sg.theme(self.prefs['theme'])
+            elif event == 'Apply':
+                self.prefs['theme'] = values['-LIST-']
+                self.prefs['recipeFolder'] = values['-PREF-FOLDER-']
+                self.savePrefs()
+
+        window.close()
+        self.prefs['theme'] = values['-LIST-']
+        self.prefs['recipeFolder'] = values['-PREF-FOLDER-'] + '/'
+        self.savePrefs()
 
 def main():
     g = gui()

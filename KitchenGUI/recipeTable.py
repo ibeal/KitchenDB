@@ -32,19 +32,28 @@ class recipeTable(sg.Tab):
             data.append(temp)
         # allData = [self.header, *data]
         self.tableData = recs
-        self.master.tableData = recs
+        # self.master.tableData = recs
         self.recTable = sg.Table(data,
                                 headings=self.header,
                                 num_rows=rowCount,
                                 enable_events=True,
                                 col_widths=[24, 9, 9, 20, 9, 6],
                                 auto_size_columns=False,
-                                key=self.tableKey)
+                                key=self.tableKey,
+                                tooltip="This is a table of your recipes, search options are above, and clicking on a recipe will open it in the editor")
         # col = sg.Column(layout = tab, scrollable=True)
-        self.master.expands['xy'].append(self.recTable)
+        # self.master.expands['xy'].append(self.recTable)
         layout = [
-            [sg.T('Sort By'), sg.Combo(values=['Title', "Category", 'Rating'], key='-FILTER-')],
-            [*search.searchBar(self.master,key='RECIPE'), sg.Button('Add New Recipe', key='-ADDNEW-')],
+            [
+              sg.T('Sort By'),
+              sg.Combo(default_value='None', values=['None', 'Title', 'Category', 'Rating'], key='-TABLE-SORT-',
+                    tooltip="Choose which field to sort the next search by")
+            ],
+            [
+              *search.searchBar(self.master,key='RECIPE',
+                    tooltip="Enter the recipe title you are looking for"),
+              sg.Button('Add New Recipe', key='-ADDNEW-',
+                    tooltip="Click here for a blank new recipe")],
             [self.recTable]
         ]
         # return sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')
@@ -57,20 +66,19 @@ class recipeTable(sg.Tab):
             # self.master.deferHandle('-EDITOR-', 'fill', values)
             return False
         elif event == '-RECIPE-SBUTTON-':
-            self.searchdb(values['-RECIPE-SBOX-'])
+            self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
             return True
         return False
 
-    def searchdb(self, query):
-        row, col = self.recTableDim
+    def searchdb(self, query, sortby):
+        # row, col = self.recTableDim
         # get search results
-        recs = self.db.search(query)
+        recs = self.db.search(query) if sortby == 'None' else self.db.search(query, sortby)
         data = []
-        header = recipe.pretty_fields[:col]
         for rec in recs:
             recInfo = rec.guts()
             temp = []
-            for col in header:
+            for col in self.header:
                 temp.append(recInfo[col])
             data.append(temp)
 
