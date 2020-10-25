@@ -14,7 +14,8 @@ class recipeTable(sg.Tab):
         self.db = self.master.db
         self.recTableDim = self.master.recTableDim
         self.tableKey = tableKey
-        self.header = ['Title', 'Prep Time', 'Cook Time', 'Yield', 'Category']
+        self.features = ['Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating']
+        self.header = ['Title', 'Prep', 'Cook', 'Yield', 'Category', 'Rating']
         super().__init__(title, layout=self.createRecipeTable(), *args, **kwargs)
 
     def createRecipeTable(self):
@@ -27,7 +28,7 @@ class recipeTable(sg.Tab):
         for rec in recs:
             recInfo = rec.guts()
             temp = []
-            for col in self.header:
+            for col in self.features:
                 temp.append(recInfo[col])
             data.append(temp)
         # allData = [self.header, *data]
@@ -37,7 +38,7 @@ class recipeTable(sg.Tab):
                                 headings=self.header,
                                 num_rows=rowCount,
                                 enable_events=True,
-                                col_widths=[24, 9, 9, 20, 9, 6],
+                                col_widths=[24, 4, 4, 20, 9, 6],
                                 auto_size_columns=False,
                                 key=self.tableKey,
                                 tooltip="This is a table of your recipes, search options are above, and clicking on a recipe will open it in the editor")
@@ -78,7 +79,7 @@ class recipeTable(sg.Tab):
         for rec in recs:
             recInfo = rec.guts()
             temp = []
-            for col in self.header:
+            for col in self.features:
                 temp.append(recInfo[col])
             data.append(temp)
 
@@ -104,7 +105,7 @@ class recipeTable(sg.Tab):
         for rec in recs:
             recInfo = rec.guts()
             temp = []
-            for col in self.header:
+            for col in self.features:
                 temp.append(recInfo[col])
             data.append(temp)
 

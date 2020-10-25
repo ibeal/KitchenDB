@@ -71,7 +71,7 @@ class gui:
             if self.panes[values['-TABS-']].handle(event, values):
                 continue
             elif event == '-RECIPE-TABLE-':
-                self.panes['-EDITOR-'].Select()
+                self.panes['-VIEWER-'].Select()
                 self.activateRecipe(self.panes['-TABLE-'].tableData[values['-RECIPE-TABLE-'][0]])
             elif event == '-SAVE-RECIPE-':
                 # self.saveFields()
@@ -84,6 +84,8 @@ class gui:
                 rec = self.panes['-EDITOR-'].getFields()
                 self.activateRecipe(rec)
                 self.panes['-VIEWER-'].Select()
+            elif event == '-VIEWER-EDIT-':
+                self.panes['-EDITOR-'].Select()
             elif event == 'Preferences':
                 self.prefEditor()
             elif event == 'Recipe':

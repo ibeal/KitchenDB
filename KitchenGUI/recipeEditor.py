@@ -43,7 +43,7 @@ class recipeEditor(sg.Tab):
                 *self.labeledEntry('Category',size=(10,1)),
                 *self.labeledEntry('Rating',size=(5,1))
             ],
-            [*self.labeledEntry('Source'), sg.Button('AutoFill', key="-AUTOFILL-")]
+            [*self.labeledEntry('Source'), sg.Button('AutoFill', key="-AUTOFILL-", disabled=True)]
         ]
         # self.master.recFields = {field: simpleInputs[field][1] for field in simpleFields}
 
@@ -54,7 +54,7 @@ class recipeEditor(sg.Tab):
         self.ingTable = sg.Table(data,
                                 num_rows=5,
                                 headings=['Food', 'Company', 'Ingredients'],
-                                col_widths=[10, 25, 40],
+                                col_widths=[8, 20, 40],
                                 auto_size_columns=False,
                                 key=self.ingTableKey)
         self.master.expands['x'].append(self.ingTable)
@@ -98,6 +98,9 @@ class recipeEditor(sg.Tab):
             self.saveFields()
             return True
         elif event == '-DELETE-RECIPE-':
+            if self.activeRecipe == None:
+                sg.PopupError("No recipe selected!", title="No Recipe")
+                return True
             # delete recipe and return to table view
             self.deleteRecipe()
             # self.master.switchTabs('-TABLE-')
@@ -237,7 +240,7 @@ class recipeEditor(sg.Tab):
         # create the recipe, the list comprehension is to put the dictionary in order
         # rec = recipe([res[key] for key in recipe.pretty_fields])
         rec = recipe(res)
-        if self.db.recipeExists(rec.name, rec.source):
+        if self.db.recipeExists(rec.title, rec.source):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.db.deleteRecipe(rec)

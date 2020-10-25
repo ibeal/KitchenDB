@@ -63,6 +63,7 @@ class database:
         command = f"SELECT * FROM recipes WHERE title LIKE '%'||?||'%'"
         if sortby:
             command += f' ORDER BY ?'
+            print(command)
             res = self.cur.execute(command, (query,sortby))
         else:
             res = self.cur.execute(command, (query,))
