@@ -1,4 +1,4 @@
-import csv, json, yaml, sys, logging, re
+import csv, json, yaml, sys, logging, re, copy
 import sqlite3 as sql
 import requests as rq
 from contextlib import suppress
@@ -9,8 +9,12 @@ class recipe:
       'rating integer', 'ingredients list', 'directions list', 'source string']
     ugly_fields = ['title', 'prep_time', 'cook_time', 'yield', 'category', 'rating', 'ingredients', 'directions', 'source']
     pretty_fields = ['Title', 'Prep Time', 'Cook Time', 'Total Time','Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source']
-    def __init__(self, data=None, file=None):
-        if data:
+    firstDigits = re.compile(r'\s*(\d+)(.*)')
+    def __init__(self, data=None, file=None, copyme=None):
+        self.multiplied = 1.0
+        if copyme:
+            self.edit(copy.deepcopy(copyme).guts())
+        elif data:
             self.edit(data)
         elif file:
             self.readIn(file)
@@ -27,6 +31,8 @@ class recipe:
             ingr += f'{food}: {amount}\n'
         for direction in self.directions:
             dir += f'{direction}\n'
+        if self.multiplied != 1.0:
+            dir += f'\n\n*This recipe has been multiplied by {self.multiplied}, cooking times may be affected*'
 
         return f'{info}\n\n{ingr}\n{dir}'
 
@@ -104,6 +110,28 @@ class recipe:
             if type == 'yaml':
                 tab = yaml.load(f,Loader=yaml.FullLoader)
                 self.edit(tab['fields'])
+
+    def __mul__(self, factor):
+        if float(factor) == 1.0:
+            return self
+        return self.multiplyBy(float(factor))
+
+
+    def multiplyBy(self, factor:float):
+        self.multiplied = factor
+        yieldAmnt = recipe.firstDigits.match(self.yieldAmnt)
+        print(self.yieldAmnt)
+        print(yieldAmnt)
+        newYield = int(yieldAmnt.group(1)) * factor
+        self.yieldAmnt = f'{newYield}{yieldAmnt.group(2)}'
+
+        new_ingredients = []
+        for ing in self.ingredients:
+            amnt = recipe.firstDigits.match(ing[2])
+            newAmnt = f'{int(amnt.group(1))*factor}{amnt.group(2)}'
+            new_ingredients.append((ing[0],ing[1],newAmnt))
+        self.ingredients = new_ingredients
+        return self
 
     def cli_new(self):
         """Function that builds the recipe.yaml file from user input"""
@@ -188,6 +216,8 @@ class recipe:
         """Fairly complicated function, used to interpret my stringified list
         it takes a string and outputs a list"""
 
+        if not isinstance(line, str):
+            return line
         # this iterates through each character, so last is the last character
         last = len(line)
         for index in range(last):

@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
@@ -15,6 +16,8 @@ class recipeViewer(sg.Tab):
                 tooltip="This button causes a prompt to display that will allow you to create a recipe file")
         self.share = sg.Button('Share', key='-VIEWER-SHARE-', disabled=True,
                 tooltip="This button will allow you to quickly share recipes with friends - Not In Use")
+        self.multby = sg.Combo(values=[f'{i}' for i in np.arange(.5,5,.5)], key='-VIEWER-MULTBY-',
+                enable_events=True, default_value='1')
         layout = [
             [
                  sg.Button('Print', key='-VIEWER-PRINT-', disabled=True,
@@ -22,7 +25,9 @@ class recipeViewer(sg.Tab):
                  self.export,
                  self.share,
                  sg.Button('Edit', key='-VIEWER-EDIT-',
-                        tooltip="Click here to edit this recipe")
+                        tooltip="Click here to edit this recipe"),
+                sg.T('Multiply By:'),
+                self.multby
             ],
             [self.recipeBox],
             [sg.HorizontalSeparator()],
@@ -54,11 +59,25 @@ class recipeViewer(sg.Tab):
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             return False
+        elif event == '-VIEWER-MULTBY-':
+            if self.activeRecipe == None:
+                sg.PopupError("No recipe selected!", title="No Recipe")
+                self.multby.update('1')
+                return True
+            self.fillFields(recipe(copyme=self.activeRecipe) * float(values['-VIEWER-MULTBY-']))
+            return True
         return False
 
     def fillFields(self, rec):
-        self.activeRecipe = rec
         self.recipeBox.update(rec.__str__())
+
+    def resetMult(self):
+        self.multby.update('1')
+
+    def newRecipe(self, rec):
+        self.activeRecipe = rec
+        self.resetMult()
+        self.fillFields(rec)
 
     def exportModal(self, rec):
         defaultType = 'txt'

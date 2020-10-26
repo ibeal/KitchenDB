@@ -66,6 +66,8 @@ class gui:
         while True:
             event, values = self.window.read()
             logger.debug(f'event was {event}')
+            logger.debug(f'value is {values}')
+
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
             if self.panes[values['-TABS-']].handle(event, values):
@@ -87,7 +89,9 @@ class gui:
             elif event == '-VIEWER-EDIT-':
                 self.panes['-EDITOR-'].Select()
             elif event == 'Preferences':
+                self.window.disable()
                 self.prefEditor()
+                self.window.enable()
             elif event == 'Recipe':
                 # import recipe
                 recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True).split(';')
@@ -117,7 +121,7 @@ class gui:
 
     def activateRecipe(self, rec):
         self.panes['-EDITOR-'].fillFields(rec)
-        self.panes['-VIEWER-'].fillFields(rec)
+        self.panes['-VIEWER-'].newRecipe(rec)
 
     def savePrefs(self):
         with open(self.prefFile, 'w') as f:
@@ -133,20 +137,25 @@ class gui:
 
     def prefEditor(self):
 
-        layout = [[sg.Text('Theme Browser')],
-          [sg.Combo(default_value=self.prefs['theme'], values=sg.theme_list(),
-                    size=(20, 12), key='-LIST-', enable_events=True)],
+        layout = [[sg.Text('Theme Browser (Themes change on app restart)')],
+          [sg.Combo(values=sg.theme_list(),
+                    size=(20, 12), key='-LIST-', enable_events=True),
+           sg.Button('View Themes')
+          ],
           [
-            sg.In(default_text=self.prefs['recipeFolder'], key='-PREF-FOLDER-'),
-            sg.FolderBrowse('Browse')
+            sg.In(key='-PREF-FOLDER-'),
+            sg.FolderBrowse('Browse', initial_folder=self.prefs['recipeFolder'])
           ],
           [sg.Button('Close'), sg.Button('Apply')]]
 
-        window = sg.Window('Theme Browser', layout)
+        window = sg.Window('Theme Browser', layout, finalize=True)
+        window['-LIST-'].update(self.prefs['theme'])
+        window['-PREF-FOLDER-'].update(self.prefs['recipeFolder'])
 
         while True:
             event, values = window.read()
-            # logger.debug(f'prefEditor event is {event}')
+            logger.debug(f'prefEditor event is {event}')
+            logger.debug(f'prefEditor value is {values}')
             if event in (sg.WIN_CLOSED, 'Close'):
                 break
             elif event == '-LIST-':
@@ -157,11 +166,16 @@ class gui:
                 self.prefs['theme'] = values['-LIST-']
                 self.prefs['recipeFolder'] = values['-PREF-FOLDER-']
                 self.savePrefs()
+            elif event == 'View Themes':
+                sg.theme_previewer()
 
+        if values != None:
+            self.prefs['theme'] = values['-LIST-']
+            self.prefs['recipeFolder'] = values['-PREF-FOLDER-']
+            if self.prefs['recipeFolder'][-1] != '/':
+                self.prefs['recipeFolder'] += '/'
+            self.savePrefs()
         window.close()
-        self.prefs['theme'] = values['-LIST-']
-        self.prefs['recipeFolder'] = values['-PREF-FOLDER-'] + '/'
-        self.savePrefs()
 
 def main():
     g = gui()

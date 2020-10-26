@@ -48,7 +48,8 @@ class recipeTable(sg.Tab):
             [
               sg.T('Sort By'),
               sg.Combo(default_value='None', values=['None', 'Title', 'Category', 'Rating'], key='-TABLE-SORT-',
-                    tooltip="Choose which field to sort the next search by")
+                    tooltip="Choose which field to sort the next search by",
+                    disabled=True)
             ],
             [
               *search.searchBar(self.master,key='RECIPE',

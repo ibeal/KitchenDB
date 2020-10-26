@@ -60,13 +60,15 @@ class database:
     def search(self, query, sortby=None):
         logger.debug(f'searching db for {query}')
         # res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
-        command = f"SELECT * FROM recipes WHERE title LIKE '%'||?||'%'"
-        if sortby:
+        command = f"SELECT * FROM recipes WHERE title LIKE ?"
+        if sortby in ['None', None]:
+            sortby = sortby.lower()
+            sortby = sortby.replace(' ', '_')
             command += f' ORDER BY ?'
             print(command)
-            res = self.cur.execute(command, (query,sortby))
+            res = self.cur.execute(command, ('%'+query+'%',sortby))
         else:
-            res = self.cur.execute(command, (query,))
+            res = self.cur.execute(command, ('%'+query+'%',))
 
         if self.returnRecipe:
             return [recipe(i) for i in res]
