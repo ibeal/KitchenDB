@@ -61,7 +61,7 @@ class database:
         logger.debug(f'searching db for {query}')
         # res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
         command = f"SELECT * FROM recipes WHERE title LIKE ?"
-        if sortby in ['None', None]:
+        if not sortby in ['None', None]:
             sortby = sortby.lower()
             sortby = sortby.replace(' ', '_')
             command += f' ORDER BY ?'

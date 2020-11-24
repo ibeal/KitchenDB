@@ -4,12 +4,13 @@ import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 from recipeCreator import *
+from KitchenModel import *
 logger = logging.getLogger('Debug Log')
 
 class recipeViewer(sg.Tab):
     def __init__(self, title, master, *args, **kwargs):
         self.master = master
-        self.activeRecipe = None
+        self.model = KitchenModel.getInstance()
         self.recipeBox = sg.Multiline(key='-VIEWER-BOX-', size=(80,30),
                 tooltip="Recipes will be displayed here when they are selected on the recipe table tab.")
         self.export = sg.Button('Export File', key='-VIEWER-EXPORT-',
@@ -37,34 +38,34 @@ class recipeViewer(sg.Tab):
 
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':
-            if self.activeRecipe == None:
+            if self.model.activeRecipe == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             return True
         elif event == '-VIEWER-EXPORT-':
-            if self.activeRecipe == None:
+            if self.model.activeRecipe == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            self.exportModal(self.activeRecipe)
+            self.exportModal(self.model.activeRecipe)
             return True
         elif event == '-VIEWER-SHARE-':
-            if self.activeRecipe == None:
+            if self.model.activeRecipe == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            # self.activeRecipe.outputToTxt(self.master.prefs['recipeFolder'] + 'text.txt')
+            # self.model.activeRecipe.outputToTxt(self.model.prefs['recipeFolder'] + 'text.txt')
             return True
         elif event == '-VIEWER-EDIT-':
             # navigate to editor tab
-            if self.activeRecipe == None:
+            if self.model.activeRecipe == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             return False
         elif event == '-VIEWER-MULTBY-':
-            if self.activeRecipe == None:
+            if self.model.activeRecipe == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 self.multby.update('1')
                 return True
-            self.fillFields(recipe(copyme=self.activeRecipe) * float(values['-VIEWER-MULTBY-']))
+            self.fillFields(recipe(copyme=self.model.activeRecipe) * float(values['-VIEWER-MULTBY-']))
             return True
         return False
 
@@ -75,7 +76,7 @@ class recipeViewer(sg.Tab):
         self.multby.update('1')
 
     def newRecipe(self, rec):
-        self.activeRecipe = rec
+        self.model.activeRecipe = rec
         self.resetMult()
         self.fillFields(rec)
 
@@ -86,13 +87,13 @@ class recipeViewer(sg.Tab):
                  'json':('JSON Files', '*.json'),
                  'yaml':('YAML Files', '*.yaml')}
         recTitle = rec.title.replace(' ', '-')
-        defaultSave = self.master.prefs['recipeFolder'] + recTitle + f'.{defaultType}'
+        defaultSave = self.model.prefs['recipeFolder'] + recTitle + f'.{defaultType}'
         layout = [[sg.Text('Export Details')],
           [
             sg.T('Destination'),
             sg.In(default_text=defaultSave, key='-EXPORT-FOLDER-'),
             sg.FileSaveAs('Browse',
-                initial_folder=self.master.prefs['recipeFolder'])
+                initial_folder=self.model.prefs['recipeFolder'])
           ],
           [
             sg.T('Format'),

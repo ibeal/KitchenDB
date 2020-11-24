@@ -8,51 +8,53 @@ from apiCalls import *
 from KitchenGUI import recipeEditor as editor
 from KitchenGUI import recipeTable as tableTab
 from KitchenGUI import recipeViewer as viewer
+from KitchenModel import *
 logger = logging.getLogger('Debug Log')
 
 class gui:
 
     def __init__(self):
         logger.debug('Creating Database and API units for mainGui...')
-        self.db = database()
-        self.api = apiCalls()
+        self.model = KitchenModel.getInstance()
+        # self.model.db = database()
+        # self.api = apiCalls()
 
         logger.debug('Setting configuations...')
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         self.recTableDim = (20,6)
         self.tableData = None
         self.prefFile = 'userSettings.config'
-        self.prefs = self.importPrefs()
-        sg.theme(self.prefs['theme'])
+        self.model.prefs = self.importPrefs()
+        sg.theme(self.model.prefs['theme'])
 
         self.expands = {'x':[], 'y':[], 'xy':[]}
         self.menu_def = [['&File', ['Import...', ['Recipe', 'Database'], '&Save', '---', 'E&xit'  ]],
         ['&Edit', ['Preferences'],],
         ['&Help', '&About...'],]
-        self.state = {"lastTableAction": "default"}
+        # self.state = {"lastTableAction": "default"}
 
-        self.panes = {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None}
+        # self.model.panes = {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None}
         self.recTable = '-RECIPE-TABLE-'
         logger.debug('Creating Table...')
-        self.panes['-TABLE-'] = tableTab.recipeTable('Recipe Table', master=self, key='-TABLE-', tableKey=self.recTable)
+        self.model.panes['-TABLE-'] = tableTab.recipeTable('Recipe Table', master=self, key='-TABLE-', tableKey=self.recTable)
 
         self.ingTable = '-OPTION-TABLE-'
         logger.debug('Creating Editor...')
-        self.panes['-EDITOR-'] = editor.recipeEditor('Recipe Editor', master=self, key='-EDITOR-', ingTableKey=self.ingTable)
+        self.model.panes['-EDITOR-'] = editor.recipeEditor('Recipe Editor', master=self, key='-EDITOR-', ingTableKey=self.ingTable)
 
-        self.panes['-VIEWER-'] = viewer.recipeViewer('Recipe Viewer', master=self, key='-VIEWER-')
-        self.panes['-TABS-'] = sg.TabGroup([
-            [self.panes['-TABLE-']],
-            [self.panes['-EDITOR-']],
-            [self.panes['-VIEWER-']]
+        self.model.panes['-VIEWER-'] = viewer.recipeViewer('Recipe Viewer', master=self, key='-VIEWER-')
+        self.model.panes['-TABS-'] = sg.TabGroup([
+            [self.model.panes['-TABLE-']],
+            [self.model.panes['-EDITOR-']],
+            [self.model.panes['-VIEWER-']]
         ], key="-TABS-")
-        self.tabHolder = self.panes['-TABS-']
+        self.tabHolder = self.model.panes['-TABS-']
         # self.expands['xy'].append(self.tabHolder)
 
         # Tabbed Layout
         layout = [
             [sg.Menu(self.menu_def)],
-            [self.panes['-TABS-']]
+            [self.model.panes['-TABS-']]
         ]
 
         logger.debug('Creating window...')
@@ -70,24 +72,24 @@ class gui:
 
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
-            if self.panes[values['-TABS-']].handle(event, values):
+            if self.model.panes[values['-TABS-']].handle(event, values):
                 continue
             elif event == '-RECIPE-TABLE-':
-                self.panes['-VIEWER-'].Select()
-                self.activateRecipe(self.panes['-TABLE-'].tableData[values['-RECIPE-TABLE-'][0]])
+                self.model.panes['-VIEWER-'].Select()
+                self.activateRecipe(self.model.panes['-TABLE-'].tableData[values['-RECIPE-TABLE-'][0]])
             elif event == '-SAVE-RECIPE-':
                 # self.saveFields()
-                self.panes['-TABLE-'].refreshRecipeTable()
+                self.model.panes['-TABLE-'].refreshRecipeTable()
             elif event == '-DELETE-RECIPE-':
-                # self.panes['-EDITOR-'].deleteRecipe()
-                self.panes['-TABLE-'].Select()
-                self.panes['-TABLE-'].refreshRecipeTable()
+                # self.model.panes['-EDITOR-'].deleteRecipe()
+                self.model.panes['-TABLE-'].Select()
+                self.model.panes['-TABLE-'].refreshRecipeTable()
             elif event == '-VIEW-RECIPE-':
-                rec = self.panes['-EDITOR-'].getFields()
+                rec = self.model.panes['-EDITOR-'].getFields()
                 self.activateRecipe(rec)
-                self.panes['-VIEWER-'].Select()
+                self.model.panes['-VIEWER-'].Select()
             elif event == '-VIEWER-EDIT-':
-                self.panes['-EDITOR-'].Select()
+                self.model.panes['-EDITOR-'].Select()
             elif event == 'Preferences':
                 self.window.disable()
                 self.prefEditor()
@@ -97,15 +99,15 @@ class gui:
                 recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True).split(';')
                 for file in recipe_files:
                     new_rec = recipe(file=file)
-                    if self.db.recipeExists(new_rec):
+                    if self.model.db.recipeExists(new_rec):
                         if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                             # save to db
-                            self.db.deleteRecipe(new_rec)
-                            self.db.saveRecipe(new_rec)
+                            self.model.db.deleteRecipe(new_rec)
+                            self.model.db.saveRecipe(new_rec)
                     else:
-                        self.db.saveRecipe(new_rec)
-                self.panes['-TABLE-'].Select()
-                self.panes['-TABLE-'].refreshRecipeTable()
+                        self.model.db.saveRecipe(new_rec)
+                self.model.panes['-TABLE-'].Select()
+                self.model.panes['-TABLE-'].refreshRecipeTable()
             elif event == 'Database':
                 # import database
                 pass
@@ -114,18 +116,18 @@ class gui:
         self.window.close()
 
     def switchTabs(self, tab):
-        self.panes[tab].Select()
+        self.model.panes[tab].Select()
 
     def deferHandle(self, tab, event, values):
-        self.panes[tab].handle(event, values)
+        self.model.panes[tab].handle(event, values)
 
     def activateRecipe(self, rec):
-        self.panes['-EDITOR-'].fillFields(rec)
-        self.panes['-VIEWER-'].newRecipe(rec)
+        self.model.panes['-EDITOR-'].fillFields(rec)
+        self.model.panes['-VIEWER-'].newRecipe(rec)
 
     def savePrefs(self):
         with open(self.prefFile, 'w') as f:
-            json.dump(self.prefs, f)
+            json.dump(self.model.prefs, f)
 
     def importPrefs(self):
         if not os.path.exists(self.prefFile):
@@ -144,13 +146,13 @@ class gui:
           ],
           [
             sg.In(key='-PREF-FOLDER-'),
-            sg.FolderBrowse('Browse', initial_folder=self.prefs['recipeFolder'])
+            sg.FolderBrowse('Browse', initial_folder=self.model.prefs['recipeFolder'])
           ],
           [sg.Button('Close'), sg.Button('Apply')]]
 
         window = sg.Window('Theme Browser', layout, finalize=True)
-        window['-LIST-'].update(self.prefs['theme'])
-        window['-PREF-FOLDER-'].update(self.prefs['recipeFolder'])
+        window['-LIST-'].update(self.model.prefs['theme'])
+        window['-PREF-FOLDER-'].update(self.model.prefs['recipeFolder'])
 
         while True:
             event, values = window.read()
@@ -160,20 +162,20 @@ class gui:
                 break
             elif event == '-LIST-':
                 # logger.debug(f'list value is {values["-LIST-"]}')
-                self.prefs['theme'] = values['-LIST-']
-                sg.theme(self.prefs['theme'])
+                self.model.prefs['theme'] = values['-LIST-']
+                sg.theme(self.model.prefs['theme'])
             elif event == 'Apply':
-                self.prefs['theme'] = values['-LIST-']
-                self.prefs['recipeFolder'] = values['-PREF-FOLDER-']
+                self.model.prefs['theme'] = values['-LIST-']
+                self.model.prefs['recipeFolder'] = values['-PREF-FOLDER-']
                 self.savePrefs()
             elif event == 'View Themes':
                 sg.theme_previewer()
 
         if values != None:
-            self.prefs['theme'] = values['-LIST-']
-            self.prefs['recipeFolder'] = values['-PREF-FOLDER-']
-            if self.prefs['recipeFolder'][-1] != '/':
-                self.prefs['recipeFolder'] += '/'
+            self.model.prefs['theme'] = values['-LIST-']
+            self.model.prefs['recipeFolder'] = values['-PREF-FOLDER-']
+            if self.model.prefs['recipeFolder'][-1] != '/':
+                self.model.prefs['recipeFolder'] += '/'
             self.savePrefs()
         window.close()
 

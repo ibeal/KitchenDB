@@ -6,16 +6,15 @@ import KitchenGUI.searchBar as search
 from database import *
 from recipeCreator import *
 from apiCalls import *
+from KitchenModel import *
 logger = logging.getLogger('Debug Log')
 
 class recipeEditor(sg.Tab):
 
     def __init__(self, title, master, *args, ingTableKey = '-OPTION-TABLE-', **kwargs):
+        self.model = KitchenModel.getInstance()
         self.master = master
         self.ingTableKey = ingTableKey
-        self.api = self.master.api
-        self.db = self.master.db
-        self.activeRecipe = None
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         super().__init__(title, layout=self.recipeEditor(), *args, **kwargs)
 
@@ -98,7 +97,7 @@ class recipeEditor(sg.Tab):
             self.saveFields()
             return True
         elif event == '-DELETE-RECIPE-':
-            if self.activeRecipe == None:
+            if self.model.activeRecipe == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             # delete recipe and return to table view
@@ -124,7 +123,7 @@ class recipeEditor(sg.Tab):
         """
         logger.debug("fill fields callback with:")
         logger.debug(rec)
-        self.activeRecipe = rec
+        self.model.activeRecipe = rec
         # rec.gets returns a dictionary with all the information in it
         for field, value in rec.guts().items():
             if field == "Directions":
@@ -206,7 +205,7 @@ class recipeEditor(sg.Tab):
         a recipe object. The object is sent to the database
         Input:
         self.recFields: dictionary of all the recipe fields
-        self.db: database to send the information
+        self.model.db: database to send the information
         """
 
         # result object, it is a temp holder for the information
@@ -240,23 +239,23 @@ class recipeEditor(sg.Tab):
         # create the recipe, the list comprehension is to put the dictionary in order
         # rec = recipe([res[key] for key in recipe.pretty_fields])
         rec = recipe(res)
-        if self.db.recipeExists(rec.title, rec.source):
+        if self.model.db.recipeExists(rec.title, rec.source):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
-                self.db.deleteRecipe(rec)
-                self.db.saveRecipe(rec)
+                self.model.db.deleteRecipe(rec)
+                self.model.db.saveRecipe(rec)
         else:
-            self.db.saveRecipe(rec)
+            self.model.db.saveRecipe(rec)
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.db.deleteRecipe(self.master.window[self.recFields['Title']].get())
+            self.model.db.deleteRecipe(self.master.window[self.recFields['Title']].get())
             self.clearFields()
 
     def searchdb(self, query):
         row, col = self.recTableDim
         # get search results
-        recs = self.db.search(query)
+        recs = self.model.db.search(query)
         data = []
         header = recipe.pretty_fields[:col]
         for rec in recs:
@@ -291,7 +290,7 @@ class recipeEditor(sg.Tab):
         """
 
         logger.debug(f'Searching for ingredients. query={query}')
-        response = self.api.apiSearchFood(query)
+        response = self.model.api.apiSearchFood(query)
         options = response.json()['foods'][:limit]
         # data = [['[BLANK]'] * table.cols for i in range(table.rows)]
         data = []
