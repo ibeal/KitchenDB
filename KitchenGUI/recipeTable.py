@@ -24,7 +24,7 @@ class recipeTable(sg.Tab):
         # Acquire data
         # note, the ingredients and directions are left off due to the number of columns
         # header = recipe.pretty_fields[:colCount]
-        recs = self.model.db.recipes(first=0, count=rowCount)
+        recs = self.model.get('db').recipes(first=0, count=rowCount)
         data = []
         for rec in recs:
             recInfo = rec.guts()
@@ -76,7 +76,7 @@ class recipeTable(sg.Tab):
     def searchdb(self, query, sortby):
         # row, col = self.recTableDim
         # get search results
-        recs = self.model.db.search(query) if sortby == 'None' else self.model.db.search(query, sortby)
+        recs = self.model.get('db').search(query) if sortby == 'None' else self.model.get('db').search(query, sortby)
         data = []
         for rec in recs:
             recInfo = rec.guts()
@@ -88,20 +88,20 @@ class recipeTable(sg.Tab):
         # preppend header list
         # data = [header, *data]
         # pass all data to update table
-        self.model.state["lastTableAction"] = "search"
-        self.model.state["lastSearch"] = query
+        self.model.setState("lastTableAction", "search")
+        self.model.setState("lastSearch", query)
         self.tableData = recs
         self.recTable.update(values = data)
 
     def refreshRecipeTable(self):
         logger.debug("Refreshing recipe table")
         row, col = self.recTableDim
-        if self.model.state["lastTableAction"] == "default":
+        if self.model.getState("lastTableAction") == "default":
             logger.debug("last state was default")
-            recs = self.model.db.recipes(count=row)
-        elif self.model.state["lastTableAction"] == "search":
+            recs = self.model.get('db').recipes(count=row)
+        elif self.model.getState("lastTableAction") == "search":
             logger.debug("last state was search")
-            recs = self.model.db.search(self.model.state["lastSearch"])
+            recs = self.model.get('db').search(self.model.getState("lastSearch"))
         # create data matrix
         data = []
         for rec in recs:

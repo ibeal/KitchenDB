@@ -38,34 +38,34 @@ class recipeViewer(sg.Tab):
 
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':
-            if self.model.activeRecipe == None:
+            if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             return True
         elif event == '-VIEWER-EXPORT-':
-            if self.model.activeRecipe == None:
+            if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            self.exportModal(self.model.activeRecipe)
+            self.exportModal(self.model.get('activeRecipe'))
             return True
         elif event == '-VIEWER-SHARE-':
-            if self.model.activeRecipe == None:
+            if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            # self.model.activeRecipe.outputToTxt(self.model.prefs['recipeFolder'] + 'text.txt')
+            # self.model.get('activeRecipe').outputToTxt(self.model.getPrefs('recipeFolder') + 'text.txt')
             return True
         elif event == '-VIEWER-EDIT-':
             # navigate to editor tab
-            if self.model.activeRecipe == None:
+            if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             return False
         elif event == '-VIEWER-MULTBY-':
-            if self.model.activeRecipe == None:
+            if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 self.multby.update('1')
                 return True
-            self.fillFields(recipe(copyme=self.model.activeRecipe) * float(values['-VIEWER-MULTBY-']))
+            self.fillFields(recipe(copyme=self.model.get('activeRecipe')) * float(values['-VIEWER-MULTBY-']))
             return True
         return False
 
@@ -76,7 +76,7 @@ class recipeViewer(sg.Tab):
         self.multby.update('1')
 
     def newRecipe(self, rec):
-        self.model.activeRecipe = rec
+        self.model.set('activeRecipe', rec)
         self.resetMult()
         self.fillFields(rec)
 
@@ -87,13 +87,13 @@ class recipeViewer(sg.Tab):
                  'json':('JSON Files', '*.json'),
                  'yaml':('YAML Files', '*.yaml')}
         recTitle = rec.title.replace(' ', '-')
-        defaultSave = self.model.prefs['recipeFolder'] + recTitle + f'.{defaultType}'
+        defaultSave = self.model.getPref('recipeFolder') + recTitle + f'.{defaultType}'
         layout = [[sg.Text('Export Details')],
           [
             sg.T('Destination'),
             sg.In(default_text=defaultSave, key='-EXPORT-FOLDER-'),
             sg.FileSaveAs('Browse',
-                initial_folder=self.model.prefs['recipeFolder'])
+                initial_folder=self.model.getPref('recipeFolder'))
           ],
           [
             sg.T('Format'),
