@@ -5,38 +5,13 @@ import PySimpleGUI as sg
 # import PySimpleGUIQt as sg
 from recipeCreator import *
 from KitchenModel import *
-from controllers.recipeViewerController import *
+from controllers.controller import *
 logger = logging.getLogger('Debug Log')
 
-class recipeViewer(sg.Tab):
-    def __init__(self, title, master, *args, **kwargs):
-        self.master = master
+class recipeViewerController(controller):
+    def __init__(self, recipeBox):
         self.model = KitchenModel.getInstance()
-        self.recipeBox = sg.Multiline(key='-VIEWER-BOX-', size=(80,30),
-                tooltip="Recipes will be displayed here when they are selected on the recipe table tab.")
-        self.export = sg.Button('Export File', key='-VIEWER-EXPORT-',
-                tooltip="This button causes a prompt to display that will allow you to create a recipe file")
-        self.share = sg.Button('Share', key='-VIEWER-SHARE-', disabled=True,
-                tooltip="This button will allow you to quickly share recipes with friends - Not In Use")
-        self.multby = sg.Combo(values=[f'{i}' for i in np.arange(.5,5,.5)], key='-VIEWER-MULTBY-',
-                enable_events=True, default_value='1')
-        layout = [
-            [
-                 sg.Button('Print', key='-VIEWER-PRINT-', disabled=True,
-                        tooltip="This button will let you print the currently selected recipe"),
-                 self.export,
-                 self.share,
-                 sg.Button('Edit', key='-VIEWER-EDIT-',
-                        tooltip="Click here to edit this recipe"),
-                sg.T('Multiply By:'),
-                self.multby
-            ],
-            [self.recipeBox],
-            [sg.HorizontalSeparator()],
-            [sg.T('Nutrition', tooltip="This area will be filled with Nutrition info about the recipe - Not In Use")]
-        ]
-        super().__init__(title, layout=layout, *args, **kwargs)
-        self.controller = recipeViewerController(self.recipeBox)
+        self.recipeBox = recipeBox
 
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':

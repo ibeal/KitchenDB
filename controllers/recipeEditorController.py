@@ -7,87 +7,14 @@ from database import *
 from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
-from controllers.recipeEditorController import *
+from controllers.controller import controller
 logger = logging.getLogger('Debug Log')
 
-class recipeEditor(sg.Tab):
-
-    def __init__(self, title, master, *args, ingTableKey = '-OPTION-TABLE-', **kwargs):
-        self.model = KitchenModel.getInstance()
-        self.master = master
+class recipeEditorController(controller):
+    def __init__(self, recFields, ingTableKey):
         self.ingTableKey = ingTableKey
-        self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
-        super().__init__(title, layout=self.recipeEditor(), *args, **kwargs)
-        self.controller = recipeEditorController(self.recFields, self.ingTableKey)
-
-    def labeledEntry(self,label,key=None,**kwargs):
-        box = sg.In(key=f'-{key if key else label}-BOX-',**kwargs)
-        return [sg.T(label),box]
-
-    def update(self, data):
-        self.table = data
-        self.ingTable.update(data)
-
-    def recipeEditor(self):
-        simpleFields = [field for field in recipe.pretty_fields]
-        simpleFields.remove('Ingredients')
-        simpleFields.remove('Directions')
-        simpleInputs = [
-            self.labeledEntry('Title'),
-            [
-                *self.labeledEntry('Prep Time',size=(10,1)),
-                *self.labeledEntry('Cook Time',size=(10,1)),
-                *self.labeledEntry('Total Time',size=(5,1))
-            ],
-            [
-                *self.labeledEntry('Yield',size=(10,1)),
-                *self.labeledEntry('Category',size=(10,1)),
-                *self.labeledEntry('Rating',size=(5,1))
-            ],
-            [*self.labeledEntry('Source'), sg.Button('AutoFill', key="-AUTOFILL-", disabled=True)]
-        ]
-        # self.master.recFields = {field: simpleInputs[field][1] for field in simpleFields}
-
-
-        # data = [['BLANK']*3 for i in range(3)]
-        data = []
-
-        self.ingTable = sg.Table(data,
-                                num_rows=5,
-                                headings=['Food', 'Company', 'Ingredients'],
-                                col_widths=[8, 20, 40],
-                                auto_size_columns=False,
-                                key=self.ingTableKey)
-        self.master.expands['x'].append(self.ingTable)
-
-        dir = sg.Multiline(key='-Directions-BOX-',size=(50,10))
-        self.master.expands['xy'].append(dir)
-        # self.master.recFields['Directions'] = dir
-
-        ing = sg.Multiline(key='-Ingredients-BOX-',size=(50,10))
-        self.master.expands['xy'].append(ing)
-        # self.master.recFields['Ingredients'] = ing
-
-        addbox = [sg.T('Amount'), sg.In(key='-AMOUNT-')]
-        self.master.expands['x'].append(addbox)
-        layout = [
-                [sg.Button('Clear',key='-CLEAR-RECIPE-'),
-                 sg.Button('Delete Recipe',key='-DELETE-RECIPE-'),
-                 sg.Button('View Recipe', key='-VIEW-RECIPE-'),
-                 sg.Button('Save',key='-SAVE-RECIPE-')],
-                *simpleInputs,
-                [sg.T('Directions')],
-                [dir],
-                [sg.T('Ingredients')],
-                search.searchBar(self.master, key='INGREDIENT'),
-                [self.ingTable],
-                [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
-                [ing]
-        ]
-
-        # col = sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')
-        # self.master.expands['xy'].append(col)
-        return layout
+        self.recFields = recFields
+        self.model = KitchenModel.getInstance()
 
     def handle(self, event, values):
         if event =='-VIEW-RECIPE-':
@@ -118,6 +45,10 @@ class recipeEditor(sg.Tab):
             return True
         return False
 
+    def update(self, data):
+        self.table = data
+        self.ingTable.update(data)
+
     def fillFields(self, rec):
         """Function that will fill the recipe fields with the recipe data.
         Input:
@@ -140,8 +71,8 @@ class recipeEditor(sg.Tab):
             # clear the field
             # self.recFields[field].delete(SPOT, tk.END)
             # fill the field
-            self.master.window[self.recFields[field]].update(value=value)
-            # self.master.window.fill({self.recFields[field]: value})
+            self.model.window[self.recFields[field]].update(value=value)
+            # self.model.window.fill({self.recFields[field]: value})
 
     def addIng(self, choice, entry):
         """Add ingredient to the ingredient text box
@@ -157,13 +88,13 @@ class recipeEditor(sg.Tab):
         else:
             choice = self.ingTableData[choice]
             ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
-            self.master.window[self.recFields['Ingredients']].update(value=ing, append=True)
+            self.model.window[self.recFields['Ingredients']].update(value=ing, append=True)
 
     def clearFields(self):
         """Simple function that clears all the fields in the recipe view"""
         for field in self.recFields:
             # clear the field
-            self.master.window[self.recFields[field]].update(value='')
+            self.model.window[self.recFields[field]].update(value='')
 
     def getFields(self):
         """Function that records all the information in the fields and returns
@@ -178,7 +109,7 @@ class recipeEditor(sg.Tab):
         # iterate over recFields, field is string name of field being analyzed,
         # value is the actual text/entry itself
         for field in recipe.pretty_fields:
-            value = self.master.window[self.recFields[field]]
+            value = self.model.window[self.recFields[field]]
             if field == "Directions":
                 # get info
                 text = value.get()
@@ -215,7 +146,7 @@ class recipeEditor(sg.Tab):
         # iterate over recFields, field is string name of field being analyzed,
         # value is the actual text/entry itself
         for field in recipe.pretty_fields:
-            value = self.master.window[self.recFields[field]]
+            value = self.model.window[self.recFields[field]]
             if not field in ['Source']:
                 if len(value.get()) <= 0:
                     sg.PopupError(f"Missing the {field} field!")
@@ -251,7 +182,7 @@ class recipeEditor(sg.Tab):
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.model.get('db').deleteRecipe(self.master.window[self.recFields['Title']].get())
+            self.model.get('db').deleteRecipe(self.model.window[self.recFields['Title']].get())
             self.clearFields()
 
     # def searchdb(self, query):

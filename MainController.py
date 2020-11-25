@@ -1,70 +1,28 @@
 import logging, os.path, json
-import PySimpleGUI as sg
-# import PySimpleGUIWeb as sg
-# import PySimpleGUIQt as sg
+from KitchenModel import *
 from database import *
 from recipeCreator import recipe
 from apiCalls import *
 from KitchenGUI import recipeEditor as editor
 from KitchenGUI import recipeTable as tableTab
 from KitchenGUI import recipeViewer as viewer
-from KitchenModel import *
-from MainController import *
-logger = logging.getLogger('Debug Log')
+import PySimpleGUI as sg
 
-class gui:
+class MainController:
+    def __init__(self, window=None, model=None):
+        self.window = window
+        self.model = model if model else KitchenModel.getInstance()
 
-    def __init__(self):
-        logger.debug('Creating Database and API units for mainGui...')
-        self.model = KitchenModel.getInstance()
-        # self.model.db = database()
-        # self.api = apiCalls()
+    def mainLoop(self, window=None):
+        # if given window, use that window for this function
+        # and restore the old window at the end
+        if window:
+            windowBackup = self.window
+            self.window = window
 
-        logger.debug('Setting configuations...')
-        self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
-        self.recTableDim = (20,6)
-        self.tableData = None
-        self.model.set('prefs', self.importPrefs())
-        sg.theme(self.model.get('prefs')['theme'])
-
-        self.expands = {'x':[], 'y':[], 'xy':[]}
-        self.menu_def = [['&File', ['Import...', ['Recipe', 'Database'], '&Save', '---', 'E&xit'  ]],
-        ['&Edit', ['Preferences'],],
-        ['&Help', '&About...'],]
-        # self.state = {"lastTableAction": "default"}
-
-        # self.model.set('views', {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None})
-        self.recTable = '-RECIPE-TABLE-'
-        logger.debug('Creating Table...')
-        self.model.setView('-TABLE-', tableTab.recipeTable('Recipe Table', master=self, key='-TABLE-', tableKey=self.recTable))
-
-        self.ingTable = '-OPTION-TABLE-'
-        logger.debug('Creating Editor...')
-        self.model.setView('-EDITOR-', editor.recipeEditor('Recipe Editor', master=self, key='-EDITOR-', ingTableKey=self.ingTable))
-
-        self.model.setView('-VIEWER-', viewer.recipeViewer('Recipe Viewer', master=self, key='-VIEWER-'))
-        self.model.setView('-TABS-', sg.TabGroup([
-            [self.model.get('views')['-TABLE-']],
-            [self.model.get('views')['-EDITOR-']],
-            [self.model.get('views')['-VIEWER-']]
-        ], key="-TABS-"))
-        # self.expands['xy'].append(self.model.getView('-TABS-'))
-
-        # Tabbed Layout
-        layout = [
-            [sg.Menu(self.menu_def)],
-            [self.model.get('views')['-TABS-']]
-        ]
-
-        logger.debug('Creating window...')
-        self.window = sg.Window('KitchenDB',
-                                layout,
-                                finalize=True,
-                                resizable=True)
-        self.controller = MainController(self.window)
-        self.model.window = self.window
-
-    def mainLoop(self):
+        if not self.window:
+            raise Exception("mainLoop called on MainController with no window specified!")
+        # do stuff
         logger.debug('Main Loop Started')
         while True:
             event, values = self.window.read()
@@ -73,7 +31,7 @@ class gui:
 
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
-            if self.model.getView(values['-TABS-']).handle(event, values):
+            if self.model.getView(values['-TABS-']).controller.handle(event, values):
                 continue
             elif event == '-RECIPE-TABLE-':
                 self.model.getView('-VIEWER-').Select()
@@ -113,8 +71,9 @@ class gui:
                 # import database
                 pass
 
-
         self.window.close()
+        if window:
+            self.window = windowBackup
 
     def switchTabs(self, tab):
         self.model.get('views')[tab].Select()
@@ -179,10 +138,3 @@ class gui:
                 self.model.get('prefs')['recipeFolder'] += '/'
             self.savePrefs()
         window.close()
-
-def main():
-    g = gui()
-    g.controller.mainLoop()
-
-if __name__ == '__main__':
-    main()
