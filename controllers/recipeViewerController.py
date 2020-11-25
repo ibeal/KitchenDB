@@ -13,6 +13,9 @@ class recipeViewerController(controller):
         self.model = KitchenModel.getInstance()
         self.recipeBox = recipeBox
 
+    def setup(self):
+        pass
+
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':
             if self.model.get('activeRecipe') == None:

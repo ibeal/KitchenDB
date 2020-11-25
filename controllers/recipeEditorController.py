@@ -12,9 +12,11 @@ logger = logging.getLogger('Debug Log')
 
 class recipeEditorController(controller):
     def __init__(self, recFields, ingTableKey):
-        self.ingTableKey = ingTableKey
-        self.recFields = recFields
         self.model = KitchenModel.getInstance()
+
+    def setup(self):
+        self.ingTableKey = self.model.get("-EDITOR-","ingTableKey")
+        self.recFields = self.model.get("-EDITOR-", "recFields")
 
     def handle(self, event, values):
         if event =='-VIEW-RECIPE-':

@@ -7,10 +7,11 @@ from database import *
 from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
+from views.view import view
 from controllers.recipeEditorController import *
 logger = logging.getLogger('Debug Log')
 
-class recipeEditor(sg.Tab):
+class recipeEditor(sg.Tab, view):
 
     def __init__(self, title, master, *args, ingTableKey = '-OPTION-TABLE-', **kwargs):
         self.model = KitchenModel.getInstance()
@@ -18,7 +19,10 @@ class recipeEditor(sg.Tab):
         self.ingTableKey = ingTableKey
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         super().__init__(title, layout=self.recipeEditor(), *args, **kwargs)
-        self.controller = recipeEditorController(self.recFields, self.ingTableKey)
+
+        self.model.addTab("-EDITOR-", self, recipeEditorController(), {"recFields":self.recFields, "ingTableKey":self.ingTableKey})
+        # self.model.seta("tabData", "-EDITOR-", value={"recFields":self.recFields, "ingTableKey":self.ingTableKey})
+        # self.controller = recipeEditorController(self.recFields, self.ingTableKey)
 
     def labeledEntry(self,label,key=None,**kwargs):
         box = sg.In(key=f'-{key if key else label}-BOX-',**kwargs)
@@ -27,6 +31,9 @@ class recipeEditor(sg.Tab):
     def update(self, data):
         self.table = data
         self.ingTable.update(data)
+
+    def refreshView(model, key):
+        pass
 
     def recipeEditor(self):
         simpleFields = [field for field in recipe.pretty_fields]

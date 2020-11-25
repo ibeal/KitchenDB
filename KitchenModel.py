@@ -7,8 +7,8 @@ class KitchenModel:
     @staticmethod
     def getInstance(caller=None):
         """ Static access method. """
-        # if caller and isinstance(caller, view):
-        if caller:
+        if caller and isinstance(caller, view):
+        # if caller:
             self.data["observers"].append(caller)
         if KitchenModel.__instance == None:
             KitchenModel()
@@ -34,24 +34,48 @@ class KitchenModel:
             self.data["observers"] = []
             self.data["prefFile"] = 'userSettings.config'
 
+    def addTab(self, key, view, controller, tabData):
+        self.data["tabData"][key] = tabData
+        self.data["views"][key] = view
+        controller.setup()
+        self.data["controllers"][key] = controller
+
     def set(self, key, value):
         self.data[key] = value
         self.notifyOberservers(key)
 
+    def seta(self, *args, value=None):
+        if len(args) <= 0:
+            raise Exception("Tried to set value in model, but no key given")
+        elif len(args) == 1:
+            self.data[args[0]] = value
+        else:
+            self.data[args[0]] = self.setHelper(self.data[args[0]], value, *args[1:])
+
+    def setHelper(self, data, value, *args):
+        if len(args) <= 1:
+            data[args[0]] = value
+            return data
+        data[args[0]] = self.setHelper(data[args[0]], value, *args[1:])
+        return data
+
     def setView(self, key, value):
-        self.data["views"][key] = value
-        self.notifyOberservers(key)
+        self.seta("views", key, value=value)
+        self.notifyOberservers("views")
 
     def setState(self, key, value):
-        self.data["state"][key] = value
-        self.notifyOberservers()
+        self.seta("state", key, value=value)
+        self.notifyOberservers("state")
 
     def setPref(self, key, value):
-        self.data["prefs"][key] = value
-        self.notifyOberservers()
+        self.seta("prefs", key, value=value)
+        self.notifyOberservers("prefs")
 
-    def get(self, key):
-        return self.data[key]
+    def get(self, *args):
+        data = self.data
+        for arg in args:
+            data = data[arg]
+        return data
 
     def getView(self, key):
         return self.data["views"][key]

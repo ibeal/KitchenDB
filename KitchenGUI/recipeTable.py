@@ -7,10 +7,11 @@ from database import *
 from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
+from views.view import view
 from controllers.recipeTableController import *
 logger = logging.getLogger('Debug Log')
 
-class recipeTable(sg.Tab):
+class recipeTable(sg.Tab, view):
     def __init__(self, title, master, *args, tableKey='-RECIPE-TABLE-', **kwargs):
         self.model = KitchenModel.getInstance()
         self.master = master
@@ -21,6 +22,9 @@ class recipeTable(sg.Tab):
         super().__init__(title, layout=self.createRecipeTable(), *args, **kwargs)
         self.controller = recipeTableController(self.tableKey, self.features, self.recTable, self.tableData, self.recTableDim)
 
+    def refreshView(model, key):
+        pass
+        
     def createRecipeTable(self):
         rowCount, colCount = self.recTableDim
         # Acquire data

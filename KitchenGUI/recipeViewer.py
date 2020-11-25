@@ -5,10 +5,11 @@ import PySimpleGUI as sg
 # import PySimpleGUIQt as sg
 from recipeCreator import *
 from KitchenModel import *
+from views.view import view
 from controllers.recipeViewerController import *
 logger = logging.getLogger('Debug Log')
 
-class recipeViewer(sg.Tab):
+class recipeViewer(sg.Tab, view):
     def __init__(self, title, master, *args, **kwargs):
         self.master = master
         self.model = KitchenModel.getInstance()
@@ -38,6 +39,9 @@ class recipeViewer(sg.Tab):
         super().__init__(title, layout=layout, *args, **kwargs)
         self.controller = recipeViewerController(self.recipeBox)
 
+    def refreshView(model, key):
+        pass
+        
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':
             if self.model.get('activeRecipe') == None:

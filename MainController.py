@@ -31,7 +31,7 @@ class MainController:
 
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
-            if self.model.getView(values['-TABS-']).controller.handle(event, values):
+            if self.model.get("controllers", values['-TABS-']).handle(event, values):
                 continue
             elif event == '-RECIPE-TABLE-':
                 self.model.getView('-VIEWER-').Select()

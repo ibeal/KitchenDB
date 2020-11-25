@@ -19,6 +19,9 @@ class recipeTableController(controller):
         self.tableData = tableData
         self.recTableDim = recTableDim
 
+    def setup(self):
+        pass
+
     def handle(self, event, values):
         if event == self.tableKey:
             # click on table, event to be handled by main
