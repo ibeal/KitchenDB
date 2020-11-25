@@ -8,22 +8,25 @@ from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
 from controllers.controller import controller
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipeEditorController Log')
 
 class recipeEditorController(controller):
-    def __init__(self, recFields, ingTableKey):
+    def __init__(self):
         self.model = KitchenModel.getInstance()
 
     def setup(self):
-        self.ingTableKey = self.model.get("-EDITOR-","ingTableKey")
-        self.recFields = self.model.get("-EDITOR-", "recFields")
+        self.ingTableKey = self.model.get("tabData", "-EDITOR-","ingTableKey")
+        self.recFields = self.model.get("tabData", "-EDITOR-", "recFields")
 
     def handle(self, event, values):
         if event =='-VIEW-RECIPE-':
             # recipe is saved then sent to viewer
             self.saveFields()
             # self.recipe_modal(self.getFields())
-            return False
+            rec = self.getFields()
+            self.model.set('activeRecipe', rec)
+            self.model.set('active_view', '-VIEWER-')
+            return True
         elif event == '-SAVE-RECIPE-':
             self.saveFields()
             return True
@@ -33,8 +36,8 @@ class recipeEditorController(controller):
                 return True
             # delete recipe and return to table view
             self.deleteRecipe()
-            # self.master.switchTabs('-TABLE-')
-            return False
+            self.model.set('active_view', '-TABLE-')
+            return True
         elif event == '-CLEAR-RECIPE-':
             self.clearFields()
             return True

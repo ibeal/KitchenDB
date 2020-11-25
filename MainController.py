@@ -3,19 +3,21 @@ from KitchenModel import *
 from database import *
 from recipeCreator import recipe
 from apiCalls import *
-from KitchenGUI import recipeEditor as editor
-from KitchenGUI import recipeTable as tableTab
-from KitchenGUI import recipeViewer as viewer
+from views import recipeEditor as editor
+from views import recipeTable as tableTab
+from views import recipeViewer as viewer
 import PySimpleGUI as sg
+logger = logging.getLogger('MainController Log')
 
 class MainController:
     def __init__(self, window=None, model=None):
         self.window = window
-        self.model = model if model else KitchenModel.getInstance()
+        self.model = KitchenModel.getInstance()
 
     def mainLoop(self, window=None):
         # if given window, use that window for this function
         # and restore the old window at the end
+        self.model.beginNotify()
         if window:
             windowBackup = self.window
             self.window = window
@@ -33,22 +35,6 @@ class MainController:
                 break
             if self.model.get("controllers", values['-TABS-']).handle(event, values):
                 continue
-            elif event == '-RECIPE-TABLE-':
-                self.model.getView('-VIEWER-').Select()
-                self.activateRecipe(self.model.getView('-TABLE-').tableData[values['-RECIPE-TABLE-'][0]])
-            elif event == '-SAVE-RECIPE-':
-                # self.saveFields()
-                self.model.getView('-TABLE-').refreshRecipeTable()
-            elif event == '-DELETE-RECIPE-':
-                # self.model.getView('-EDITOR-').deleteRecipe()
-                self.model.getView('-TABLE-').Select()
-                self.model.getView('-TABLE-').refreshRecipeTable()
-            elif event == '-VIEW-RECIPE-':
-                rec = self.model.getView('-EDITOR-').getFields()
-                self.activateRecipe(rec)
-                self.model.getView('-VIEWER-').Select()
-            elif event == '-VIEWER-EDIT-':
-                self.model.getView('-EDITOR-').Select()
             elif event == 'Preferences':
                 self.window.disable()
                 self.prefEditor()
@@ -58,13 +44,13 @@ class MainController:
                 recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True).split(';')
                 for file in recipe_files:
                     new_rec = recipe(file=file)
-                    if self.model.db.recipeExists(new_rec):
+                    if self.model.get("db").recipeExists(new_rec):
                         if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                             # save to db
-                            self.model.db.deleteRecipe(new_rec)
-                            self.model.db.saveRecipe(new_rec)
+                            self.model.get("db").deleteRecipe(new_rec)
+                            self.model.get("db").saveRecipe(new_rec)
                     else:
-                        self.model.db.saveRecipe(new_rec)
+                        self.model.get("db").saveRecipe(new_rec)
                 self.model.get('views')['-TABLE-'].Select()
                 self.model.get('views')['-TABLE-'].refreshRecipeTable()
             elif event == 'Database':
@@ -77,13 +63,13 @@ class MainController:
 
     def switchTabs(self, tab):
         self.model.get('views')[tab].Select()
+        # self.model.set('active_view', tab)
 
     def deferHandle(self, tab, event, values):
-        self.model.get('views')[tab].handle(event, values)
+        return self.model.get('controllers')[tab].handle(event, values)
 
     def activateRecipe(self, rec):
-        self.model.get('views')['-EDITOR-'].fillFields(rec)
-        self.model.get('views')['-VIEWER-'].newRecipe(rec)
+        self.model.set("activeRecipe", rec)
 
     def savePrefs(self):
         with open(self.model.get('prefFile'), 'w') as f:

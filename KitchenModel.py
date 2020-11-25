@@ -19,6 +19,7 @@ class KitchenModel:
             raise Exception("This class is a singleton!")
         else:
             KitchenModel.__instance = self
+            self.notify = False
             self.window = window
             self.data = {}
             self.data["controllers"] = {}
@@ -26,7 +27,7 @@ class KitchenModel:
             self.data["activeRecipe"] = None
             self.data["recipe_table"] = None
             self.data["views"] = {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None}
-            self.data["active_view"] = None
+            self.data["active_view"] = '-TABLE-'
             self.data["state"] = {"lastTableAction": "default"}
             self.data["db"] = database()
             self.data["api"] = apiCalls()
@@ -34,23 +35,35 @@ class KitchenModel:
             self.data["observers"] = []
             self.data["prefFile"] = 'userSettings.config'
 
+    def beginNotify(self):
+        self.notify = True
+
+    def endNotify(self):
+        self.notify = False
+
     def addTab(self, key, view, controller, tabData):
         self.data["tabData"][key] = tabData
         self.data["views"][key] = view
         controller.setup()
         self.data["controllers"][key] = controller
 
-    def set(self, key, value):
-        self.data[key] = value
-        self.notifyOberservers(key)
+    def addObserver(self, observer):
+        self.data["observers"].append(observer)
 
-    def seta(self, *args, value=None):
+    def set(self, key, value):
+        # self.data[key] = value
+        # self.notifyOberservers(key)
+        self.seta(key, value=value)
+
+    def seta(self, *args, value=None, notify=True):
         if len(args) <= 0:
             raise Exception("Tried to set value in model, but no key given")
         elif len(args) == 1:
             self.data[args[0]] = value
         else:
             self.data[args[0]] = self.setHelper(self.data[args[0]], value, *args[1:])
+        if notify and self.notify:
+            self.notifyOberservers(args[0])
 
     def setHelper(self, data, value, *args):
         if len(args) <= 1:
@@ -61,15 +74,12 @@ class KitchenModel:
 
     def setView(self, key, value):
         self.seta("views", key, value=value)
-        self.notifyOberservers("views")
 
     def setState(self, key, value):
         self.seta("state", key, value=value)
-        self.notifyOberservers("state")
 
     def setPref(self, key, value):
         self.seta("prefs", key, value=value)
-        self.notifyOberservers("prefs")
 
     def get(self, *args):
         data = self.data
@@ -78,13 +88,13 @@ class KitchenModel:
         return data
 
     def getView(self, key):
-        return self.data["views"][key]
+        return self.data.get("views", key)
 
     def getState(self, key):
-        return self.data["state"][key]
+        return self.data.get("state", key)
 
     def getPref(self, key):
-        return self.data["prefs"][key]
+        return self.data.get("prefs", key)
 
     def notifyOberservers(self, key=None):
         for ob in self.data["observers"]:

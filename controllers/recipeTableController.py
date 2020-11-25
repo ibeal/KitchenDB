@@ -8,26 +8,29 @@ from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
 from controllers.controller import controller
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipeTableController Log')
 
 class recipeTableController(controller):
-    def __init__(self, tableKey, features, recTable, tableData, recTableDim):
-        self.tableKey = tableKey
+    def __init__(self):
         self.model = KitchenModel.getInstance()
-        self.features = features
-        self.recTable = recTable
-        self.tableData = tableData
-        self.recTableDim = recTableDim
 
     def setup(self):
-        pass
+        logger.debug("setup initiated...")
+        self.features = self.model.get("tabData", "-TABLE-", "features")
+        self.recTable = self.model.get("tabData", "-TABLE-", "recTable")
+        self.tableData = self.model.get("tabData", "-TABLE-", "tableData")
+        self.recTableDim = self.model.get("tabData", "-TABLE-", "recTableDim")
+        self.tableKey = self.model.get("tabData", "-TABLE-", "tableKey")
 
     def handle(self, event, values):
         if event == self.tableKey:
             # click on table, event to be handled by main
             # self.master.switchTabs('-EDITOR-')
             # self.master.deferHandle('-EDITOR-', 'fill', values)
-            return False
+            # self.model.getView('-VIEWER-').Select()
+            self.model.set('active_view', '-VIEWER-')
+            self.model.set('activeRecipe', self.tableData[values['-RECIPE-TABLE-'][0]])
+            return True
         elif event == '-RECIPE-SBUTTON-':
             self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
             return True
@@ -62,6 +65,8 @@ class recipeTableController(controller):
         elif self.model.getState("lastTableAction") == "search":
             logger.debug("last state was search")
             recs = self.model.get('db').search(self.model.getState("lastSearch"))
+        else:
+            raise Exception("Unknown last state!")
         # create data matrix
         data = []
         for rec in recs:

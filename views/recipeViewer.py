@@ -37,11 +37,16 @@ class recipeViewer(sg.Tab, view):
             [sg.T('Nutrition', tooltip="This area will be filled with Nutrition info about the recipe - Not In Use")]
         ]
         super().__init__(title, layout=layout, *args, **kwargs)
-        self.controller = recipeViewerController(self.recipeBox)
+        # self.controller = recipeViewerController(self.recipeBox)
+        self.model.addTab("-VIEWER-", self, recipeViewerController(), {"recipeBox":self.recipeBox})
 
-    def refreshView(model, key):
-        pass
-        
+    def refreshView(self, model, key):
+        if key == "activeRecipe":
+            self.newRecipe(self.model.get('activeRecipe'))
+        elif key == "active_view":
+            if self.model.get("active_view") == "-VIEWER-":
+                self.Select()
+
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':
             if self.model.get('activeRecipe') == None:
@@ -82,7 +87,6 @@ class recipeViewer(sg.Tab, view):
         self.multby.update('1')
 
     def newRecipe(self, rec):
-        self.model.set('activeRecipe', rec)
         self.resetMult()
         self.fillFields(rec)
 

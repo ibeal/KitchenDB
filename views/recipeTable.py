@@ -20,11 +20,20 @@ class recipeTable(sg.Tab, view):
         self.features = ['Title', 'Prep Time', 'Cook Time', 'Yield', 'Category', 'Rating']
         self.header = ['Title', 'Prep', 'Cook', 'Yield', 'Category', 'Rating']
         super().__init__(title, layout=self.createRecipeTable(), *args, **kwargs)
-        self.controller = recipeTableController(self.tableKey, self.features, self.recTable, self.tableData, self.recTableDim)
+        self.model.addTab("-TABLE-", self, recipeTableController(),
+            {"tableKey":self.tableKey,
+             "features":self.features,
+             "recTable":self.recTable,
+             "tableData":self.tableData,
+             "recTableDim":self.recTableDim})
+        # self.controller = recipeTableController(self.tableKey, self.features, self.recTable, self.tableData, self.recTableDim)
 
-    def refreshView(model, key):
-        pass
-        
+    def refreshView(self, model, key):
+        self.refreshRecipeTable()
+        if key == "active_view":
+            if self.model.get("active_view") == "-TABLE-":
+                self.Select()
+
     def createRecipeTable(self):
         rowCount, colCount = self.recTableDim
         # Acquire data
@@ -68,17 +77,6 @@ class recipeTable(sg.Tab, view):
         # return sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')
         return layout
 
-    def handle(self, event, values):
-        if event == self.tableKey:
-            # click on table, event to be handled by main
-            # self.master.switchTabs('-EDITOR-')
-            # self.master.deferHandle('-EDITOR-', 'fill', values)
-            return False
-        elif event == '-RECIPE-SBUTTON-':
-            self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
-            return True
-        return False
-
     def searchdb(self, query, sortby):
         # row, col = self.recTableDim
         # get search results
@@ -102,12 +100,14 @@ class recipeTable(sg.Tab, view):
     def refreshRecipeTable(self):
         logger.debug("Refreshing recipe table")
         row, col = self.recTableDim
-        if self.model.getState("lastTableAction") == "default":
+        if self.model.get("state", "lastTableAction") == "default":
             logger.debug("last state was default")
             recs = self.model.get('db').recipes(count=row)
-        elif self.model.getState("lastTableAction") == "search":
+        elif self.model.get("state", "lastTableAction") == "search":
             logger.debug("last state was search")
             recs = self.model.get('db').search(self.model.getState("lastSearch"))
+        else:
+            raise Exception("Unknown last state!")
         # create data matrix
         data = []
         for rec in recs:

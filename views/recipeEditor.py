@@ -32,8 +32,12 @@ class recipeEditor(sg.Tab, view):
         self.table = data
         self.ingTable.update(data)
 
-    def refreshView(model, key):
-        pass
+    def refreshView(self, model, key):
+        if key == "activeRecipe":
+            self.fillFields(self.model.get('activeRecipe'))
+        elif key == "active_view":
+            if self.model.get("active_view") == "-EDITOR-":
+                self.Select()
 
     def recipeEditor(self):
         simpleFields = [field for field in recipe.pretty_fields]
@@ -96,35 +100,6 @@ class recipeEditor(sg.Tab, view):
         # self.master.expands['xy'].append(col)
         return layout
 
-    def handle(self, event, values):
-        if event =='-VIEW-RECIPE-':
-            # recipe is saved then sent to viewer
-            self.saveFields()
-            # self.recipe_modal(self.getFields())
-            return False
-        elif event == '-SAVE-RECIPE-':
-            self.saveFields()
-            return True
-        elif event == '-DELETE-RECIPE-':
-            if self.model.get(activeRecipe) == None:
-                sg.PopupError("No recipe selected!", title="No Recipe")
-                return True
-            # delete recipe and return to table view
-            self.deleteRecipe()
-            # self.master.switchTabs('-TABLE-')
-            return False
-        elif event == '-CLEAR-RECIPE-':
-            self.clearFields()
-            return True
-        elif event == '-INGREDIENT-SBUTTON-':
-            self.getIngResults(values['-INGREDIENT-SBOX-'])
-            return True
-        elif event == '-ADD-INGREDIENT-':
-            print(values)
-            self.addIng(values[self.ingTableKey][0], values['-AMOUNT-'])
-            return True
-        return False
-
     def fillFields(self, rec):
         """Function that will fill the recipe fields with the recipe data.
         Input:
@@ -132,7 +107,7 @@ class recipeEditor(sg.Tab, view):
         """
         logger.debug("fill fields callback with:")
         logger.debug(rec)
-        self.model.set('activeRecipe', rec)
+        # self.model.set('activeRecipe', rec)
         # rec.gets returns a dictionary with all the information in it
         for field, value in rec.guts().items():
             if field == "Directions":

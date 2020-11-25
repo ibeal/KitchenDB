@@ -9,12 +9,11 @@ from controllers.controller import *
 logger = logging.getLogger('Debug Log')
 
 class recipeViewerController(controller):
-    def __init__(self, recipeBox):
+    def __init__(self):
         self.model = KitchenModel.getInstance()
-        self.recipeBox = recipeBox
 
     def setup(self):
-        pass
+        self.recipeBox = self.model.get("tabData", "-VIEWER-", "recipeBox")
 
     def handle(self, event, values):
         if event == '-VIEWER-PRINT-':
@@ -39,7 +38,8 @@ class recipeViewerController(controller):
             if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            return False
+            self.model.set('active_view', '-EDITOR-')
+            return True
         elif event == '-VIEWER-MULTBY-':
             if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
