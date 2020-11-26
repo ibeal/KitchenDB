@@ -5,7 +5,7 @@ import sqlite3 as sql
 import requests as rq
 from contextlib import suppress
 from recipeCreator import *
-from database import *
+from DB.database import *
 from tkinter import N,E,S,W
 from apiCalls import *
 from KitchenGUI.searchBar import searchBar

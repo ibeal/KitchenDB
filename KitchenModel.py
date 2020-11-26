@@ -1,6 +1,8 @@
-from database import *
+from DB.database import *
+from DB.RecipeAPI import *
 from apiCalls import *
 from views.view import view
+import os
 
 class KitchenModel:
     __instance = None
@@ -30,8 +32,12 @@ class KitchenModel:
             self.data["active_view"] = '-TABLE-'
             self.data["state"] = {"lastTableAction": "default"}
             self.data["db"] = database()
+            self.data["RecipeAPI"] = RecipeAPI(self.data["db"])
             self.data["api"] = apiCalls()
-            self.data["prefs"] = None
+            self.data["prefs"] = {
+                'recipeFolder': os.getcwd() + '/recipes/',
+                'theme': 'Dark Blue 1',
+                'dbLocation': os.getcwd() + '/KitchenDB'}
             self.data["observers"] = []
             self.data["prefFile"] = 'userSettings.config'
 
@@ -55,11 +61,14 @@ class KitchenModel:
         # self.notifyOberservers(key)
         self.seta(key, value=value)
 
-    def seta(self, *args, value=None, notify=True):
+    def seta(self, *args, value=None, notify=True, merge=False):
         if len(args) <= 0:
             raise Exception("Tried to set value in model, but no key given")
         elif len(args) == 1:
-            self.data[args[0]] = value
+            if merge and isinstance(value, dict):
+                self.data[args[0]] = {**self.data[args[0]], **value}
+            else:
+                self.data[args[0]] = value
         else:
             self.data[args[0]] = self.setHelper(self.data[args[0]], value, *args[1:])
         if notify and self.notify:

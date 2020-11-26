@@ -2,8 +2,8 @@ import logging
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-import KitchenGUI.searchBar as search
-from database import *
+import KitchenGUI.searchBar as searchBar
+from DB.database import *
 from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
@@ -90,7 +90,7 @@ class recipeEditor(sg.Tab, view):
                 [sg.T('Directions')],
                 [dir],
                 [sg.T('Ingredients')],
-                search.searchBar(self.master, key='INGREDIENT'),
+                searchBar.searchBar(self.master, key='INGREDIENT'),
                 [self.ingTable],
                 [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
                 [ing]
@@ -252,8 +252,8 @@ class recipeEditor(sg.Tab, view):
     #     # preppend header list
     #     # data = [header, *data]
     #     # pass all data to update table
-    #     self.model.setState("lastTableAction", "search")
-    #     self.model.setState("lastSearch", query)
+    #     self.model.seta("state", "lastTableAction", value="search", notify=False)
+    #     self.model.seta("state", "lastSearch", value=query, notify=False)
     #     self.tableData = recs
     #     self.recTable.update(values = data)
 

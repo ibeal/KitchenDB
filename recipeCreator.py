@@ -120,8 +120,6 @@ class recipe:
     def multiplyBy(self, factor:float):
         self.multiplied = factor
         yieldAmnt = recipe.firstDigits.match(self.yieldAmnt)
-        print(self.yieldAmnt)
-        print(yieldAmnt)
         newYield = int(yieldAmnt.group(1)) * factor
         self.yieldAmnt = f'{newYield}{yieldAmnt.group(2)}'
 

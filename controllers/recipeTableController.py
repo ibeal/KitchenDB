@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 import KitchenGUI.searchBar as search
-from database import *
+from DB.database import *
 from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
@@ -51,33 +51,33 @@ class recipeTableController(controller):
         # preppend header list
         # data = [header, *data]
         # pass all data to update table
-        self.model.setState("lastTableAction", "search")
-        self.model.setState("lastSearch", query)
+        self.model.seta("state", "lastTableAction", value="search", notify=False)
+        self.model.seta("state", "lastSearch", value=query, notify=False)
         self.tableData = recs
         self.recTable.update(values = data)
 
-    def refreshRecipeTable(self):
-        logger.debug("Refreshing recipe table")
-        row, col = self.recTableDim
-        if self.model.getState("lastTableAction") == "default":
-            logger.debug("last state was default")
-            recs = self.model.get('db').recipes(count=row)
-        elif self.model.getState("lastTableAction") == "search":
-            logger.debug("last state was search")
-            recs = self.model.get('db').search(self.model.getState("lastSearch"))
-        else:
-            raise Exception("Unknown last state!")
-        # create data matrix
-        data = []
-        for rec in recs:
-            recInfo = rec.guts()
-            temp = []
-            for col in self.features:
-                temp.append(recInfo[col])
-            data.append(temp)
-
-        # preppend header list
-        # data = [header, *data]
-        self.tableData = recs
-        # chop off ing and dirs for display
-        self.recTable.update(values=data)
+    # def refreshRecipeTable(self):
+    #     logger.debug("Refreshing recipe table")
+    #     row, col = self.recTableDim
+    #     if self.model.get("state", "lastTableAction") == "default":
+    #         logger.debug("last state was default")
+    #         recs = self.model.get('db').recipes(count=row)
+    #     elif self.model.get("state", "lastTableAction") == "search":
+    #         logger.debug("last state was search")
+    #         recs = self.model.get('db').search(self.model.get("state", "lastSearch"))
+    #     else:
+    #         raise Exception("Unknown last state!")
+    #     # create data matrix
+    #     data = []
+    #     for rec in recs:
+    #         recInfo = rec.guts()
+    #         temp = []
+    #         for col in self.features:
+    #             temp.append(recInfo[col])
+    #         data.append(temp)
+    #
+    #     # preppend header list
+    #     # data = [header, *data]
+    #     self.tableData = recs
+    #     # chop off ing and dirs for display
+    #     self.recTable.update(values=data)

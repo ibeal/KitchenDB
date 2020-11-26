@@ -1,6 +1,6 @@
 import logging, os.path, json
 from KitchenModel import *
-from database import *
+from DB.database import *
 from recipeCreator import recipe
 from apiCalls import *
 from views import recipeEditor as editor
@@ -75,30 +75,28 @@ class MainController:
         with open(self.model.get('prefFile'), 'w') as f:
             json.dump(self.model.get("prefs"), f)
 
-    def importPrefs(self):
-        if not os.path.exists(self.model.get('prefFile')):
-            logger.debug('config not found, using default')
-            return {'recipeFolder': os.getcwd() + '/recipes/', 'theme': 'Dark Blue 1'}
-        with open(self.model.get('prefFile'), 'r') as f:
-            logger.debug('config found, using custom settings')
-            return json.load(f)
-
     def prefEditor(self):
-
         layout = [[sg.Text('Theme Browser (Themes change on app restart)')],
           [sg.Combo(values=sg.theme_list(),
                     size=(20, 12), key='-LIST-', enable_events=True),
            sg.Button('View Themes')
           ],
+          [sg.Text('Recipe Export Folder')],
           [
             sg.In(key='-PREF-FOLDER-'),
             sg.FolderBrowse('Browse', initial_folder=self.model.get('prefs')['recipeFolder'])
+          ],
+          [sg.Text('Database Location')],
+          [
+            sg.In(key='-DB-LOCATION-'),
+            sg.FileBrowse('Browse', initial_folder=self.model.get('prefs')['dbLocation'])
           ],
           [sg.Button('Close'), sg.Button('Apply')]]
 
         window = sg.Window('Theme Browser', layout, finalize=True)
         window['-LIST-'].update(self.model.get('prefs')['theme'])
         window['-PREF-FOLDER-'].update(self.model.get('prefs')['recipeFolder'])
+        window['-DB-LOCATION-'].update(self.model.get('prefs')['dbLocation'])
 
         while True:
             event, values = window.read()

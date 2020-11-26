@@ -1,5 +1,5 @@
 from recipeCreator import *
-from database import *
+from DB.database import *
 import logging
 
 def main(**kwargs):

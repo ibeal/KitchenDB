@@ -2,7 +2,7 @@ import logging, os.path, json
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-from database import *
+from DB.database import *
 from recipeCreator import recipe
 from apiCalls import *
 from views import recipeEditor as editor
@@ -24,7 +24,7 @@ class gui:
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         self.recTableDim = (20,6)
         self.tableData = None
-        self.model.set('prefs', self.importPrefs())
+        self.model.seta('prefs', value=self.importPrefs(), merge=True)
         sg.theme(self.model.get('prefs')['theme'])
 
         self.expands = {'x':[], 'y':[], 'xy':[]}
@@ -68,7 +68,7 @@ class gui:
     def importPrefs(self):
         if not os.path.exists(self.model.get('prefFile')):
             logger.debug('config not found, using default')
-            return {'recipeFolder': os.getcwd() + '/recipes/', 'theme': 'Dark Blue 1'}
+            return self.model.get('prefs')
         with open(self.model.get('prefFile'), 'r') as f:
             logger.debug('config found, using custom settings')
             return json.load(f)

@@ -2,8 +2,8 @@ import logging
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-import KitchenGUI.searchBar as search
-from database import *
+import KitchenGUI.searchBar as searchBar
+from DB.database import *
 from recipeCreator import *
 from apiCalls import *
 from KitchenModel import *
@@ -68,7 +68,7 @@ class recipeTable(sg.Tab, view):
                     disabled=True)
             ],
             [
-              *search.searchBar(self.master,key='RECIPE',
+              *searchBar.searchBar(self.master,key='RECIPE',
                     tooltip="Enter the recipe title you are looking for"),
               sg.Button('Add New Recipe', key='-ADDNEW-',
                     tooltip="Click here for a blank new recipe")],
@@ -89,11 +89,12 @@ class recipeTable(sg.Tab, view):
                 temp.append(recInfo[col])
             data.append(temp)
 
-        # preppend header list
-        # data = [header, *data]
         # pass all data to update table
-        self.model.setState("lastTableAction", "search")
-        self.model.setState("lastSearch", query)
+
+        # can't notify after first set, because data isn't complete
+        self.model.seta("state", "lastTableAction", value="search", notify=False)
+        # I could notify after the second one, but for now it's not needed
+        self.model.seta("state", "lastSearch", value=query, notify=False)
         self.tableData = recs
         self.recTable.update(values = data)
 
@@ -105,7 +106,7 @@ class recipeTable(sg.Tab, view):
             recs = self.model.get('db').recipes(count=row)
         elif self.model.get("state", "lastTableAction") == "search":
             logger.debug("last state was search")
-            recs = self.model.get('db').search(self.model.getState("lastSearch"))
+            recs = self.model.get('db').search(self.model.get("state", "lastSearch"))
         else:
             raise Exception("Unknown last state!")
         # create data matrix

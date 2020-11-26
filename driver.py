@@ -1,6 +1,6 @@
 from config import *
 from recipeCreator import *
-from database import *
+from DB.database import *
 
 def main(**kwargs):
     logger.debug('driver.main running...')
