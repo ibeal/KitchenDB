@@ -29,10 +29,11 @@ class recipeTable(sg.Tab, view):
         # self.controller = recipeTableController(self.tableKey, self.features, self.recTable, self.tableData, self.recTableDim)
 
     def refreshView(self, model, key):
-        self.refreshRecipeTable()
         if key == "active_view":
             if self.model.get("active_view") == "-TABLE-":
                 self.Select()
+        else:
+            self.refreshRecipeTable()
 
     def createRecipeTable(self):
         rowCount, colCount = self.recTableDim

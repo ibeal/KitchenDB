@@ -20,7 +20,10 @@ class recipeEditor(sg.Tab, view):
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         super().__init__(title, layout=self.recipeEditor(), *args, **kwargs)
 
-        self.model.addTab("-EDITOR-", self, recipeEditorController(), {"recFields":self.recFields, "ingTableKey":self.ingTableKey})
+        self.model.addTab("-EDITOR-", self, recipeEditorController(),
+            {"recFields":self.recFields,
+             "ingTableKey":self.ingTableKey,
+             "ingTable":self.ingTable})
         # self.model.seta("tabData", "-EDITOR-", value={"recFields":self.recFields, "ingTableKey":self.ingTableKey})
         # self.controller = recipeEditorController(self.recFields, self.ingTableKey)
 
@@ -34,7 +37,10 @@ class recipeEditor(sg.Tab, view):
 
     def refreshView(self, model, key):
         if key == "activeRecipe":
-            self.fillFields(self.model.get('activeRecipe'))
+            if self.model.get('activeRecipe') == None:
+                self.clearFields()
+            else:
+                self.fillFields(self.model.get('activeRecipe'))
         elif key == "active_view":
             if self.model.get("active_view") == "-EDITOR-":
                 self.Select()
@@ -46,8 +52,8 @@ class recipeEditor(sg.Tab, view):
         simpleInputs = [
             self.labeledEntry('Title'),
             [
-                *self.labeledEntry('Prep Time',size=(10,1)),
-                *self.labeledEntry('Cook Time',size=(10,1)),
+                *self.labeledEntry('Prep Time',size=(5,1)),
+                *self.labeledEntry('Cook Time',size=(5,1)),
                 *self.labeledEntry('Total Time',size=(5,1))
             ],
             [
@@ -66,7 +72,7 @@ class recipeEditor(sg.Tab, view):
         self.ingTable = sg.Table(data,
                                 num_rows=5,
                                 headings=['Food', 'Company', 'Ingredients'],
-                                col_widths=[8, 20, 40],
+                                col_widths=[8, 20, 20],
                                 auto_size_columns=False,
                                 key=self.ingTableKey)
         self.master.expands['x'].append(self.ingTable)

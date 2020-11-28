@@ -34,6 +34,9 @@ class recipeTableController(controller):
         elif event == '-RECIPE-SBUTTON-':
             self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
             return True
+        elif event == '-ADDNEW-':
+            self.model.set('activeRecipe', None)
+            self.model.set('active_view', '-EDITOR-')
         return False
 
     def searchdb(self, query, sortby):

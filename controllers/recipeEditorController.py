@@ -17,6 +17,7 @@ class recipeEditorController(controller):
     def setup(self):
         self.ingTableKey = self.model.get("tabData", "-EDITOR-","ingTableKey")
         self.recFields = self.model.get("tabData", "-EDITOR-", "recFields")
+        self.ingTable = self.model.get("tabData", "-EDITOR-", "ingTable")
 
     def handle(self, event, values):
         if event =='-VIEW-RECIPE-':

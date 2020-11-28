@@ -15,6 +15,7 @@ logger = logging.getLogger('mainGui Log')
 class gui:
 
     def __init__(self, android=False):
+        self.android = android
         logger.debug('Creating Database and API units for mainGui...')
         self.model = KitchenModel.getInstance()
         # self.model.db = database()
@@ -80,8 +81,8 @@ class gui:
             logger.debug('config found, using custom settings')
             return json.load(f)
 
-def main(android=False):
-    g = gui(android)
+def main(**kwargs):
+    g = gui(**kwargs)
     # g = gui(True)
     g.controller.mainLoop()
 

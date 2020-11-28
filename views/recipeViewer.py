@@ -42,7 +42,10 @@ class recipeViewer(sg.Tab, view):
 
     def refreshView(self, model, key):
         if key == "activeRecipe":
-            self.newRecipe(self.model.get('activeRecipe'))
+            if self.model.get('activeRecipe') == None:
+                self.clearFields()
+            else:
+                self.newRecipe(self.model.get('activeRecipe'))
         elif key == "active_view":
             if self.model.get("active_view") == "-VIEWER-":
                 self.Select()
@@ -82,6 +85,9 @@ class recipeViewer(sg.Tab, view):
 
     def fillFields(self, rec):
         self.recipeBox.update(rec.__str__())
+
+    def clearFields(self):
+        self.recipeBox.update(" ")
 
     def resetMult(self):
         self.multby.update('1')
