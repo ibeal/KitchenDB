@@ -1,4 +1,4 @@
-import mainCLI, sys, testRealm, logging, mainGui
+import mainCLI, sys, testRealm, logging, mainGui, os
 
 import KitchenGUI as gui
 
@@ -20,4 +20,4 @@ if '-t' in sys.argv:
     testRealm.main()
     exit(0)
 
-mainGui.main()
+mainGui.main(android=bool('ANDROID_ROOT' in os.environ))

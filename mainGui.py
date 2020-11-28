@@ -14,7 +14,7 @@ logger = logging.getLogger('mainGui Log')
 
 class gui:
 
-    def __init__(self):
+    def __init__(self, android=False):
         logger.debug('Creating Database and API units for mainGui...')
         self.model = KitchenModel.getInstance()
         # self.model.db = database()
@@ -58,10 +58,17 @@ class gui:
         ]
 
         logger.debug('Creating window...')
-        self.window = sg.Window('KitchenDB',
-                                layout,
-                                finalize=True,
-                                resizable=True)
+        if android:
+            self.window = sg.Window('KitchenDB',
+                                    layout,
+                                    finalize=True,
+                                    size=(1280,800),
+                                    location=(0,0))
+        else:
+            self.window = sg.Window('KitchenDB',
+                                    layout,
+                                    finalize=True,
+                                    resizable=True)
         self.controller = MainController(self.window)
         self.model.window = self.window
 
@@ -73,8 +80,9 @@ class gui:
             logger.debug('config found, using custom settings')
             return json.load(f)
 
-def main():
-    g = gui()
+def main(android=False):
+    # g = gui(android)
+    g = gui(True)
     g.controller.mainLoop()
 
 if __name__ == '__main__':
