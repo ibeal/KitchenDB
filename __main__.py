@@ -1,5 +1,5 @@
 import mainCLI, sys, testRealm, logging, mainGui, os
-
+import tkinter
 import KitchenGUI as gui
 
 global logger
