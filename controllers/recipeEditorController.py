@@ -115,7 +115,7 @@ class recipeEditorController(controller):
         # iterate over recFields, field is string name of field being analyzed,
         # value is the actual text/entry itself
         for field in recipe.pretty_fields:
-            value = self.model.window[self.recFields[field]]
+            value = self.master.window[self.recFields[field]]
             if field == "Directions":
                 # get info
                 text = value.get()
@@ -131,6 +131,8 @@ class recipeEditorController(controller):
                 # Additionally, the tuples are interpreted here,
                 # then the whole thing is stringified
                 res[field] = str([recipe.interp(s) for s in temp])
+            elif field == "Total Time":
+                res["Total Time"] = res["Prep Time"] + res["Cook Time"]
             else:
                 # else, it's an entry box
                 res[field] = value.get()
@@ -152,7 +154,7 @@ class recipeEditorController(controller):
         # iterate over recFields, field is string name of field being analyzed,
         # value is the actual text/entry itself
         for field in recipe.pretty_fields:
-            value = self.model.window[self.recFields[field]]
+            value = self.master.window[self.recFields[field]]
             if not field in ['Source']:
                 if len(value.get()) <= 0:
                     sg.PopupError(f"Missing the {field} field!")
@@ -172,6 +174,8 @@ class recipeEditorController(controller):
                 # Additionally, the tuples are interpreted here,
                 # then the whole thing is stringified
                 res[field] = str([recipe.interp(s) for s in temp])
+            elif field == "Total Time":
+                res["Total Time"] = res["Prep Time"] + res["Cook Time"]
             else:
                 # else, it's an entry box
                 res[field] = value.get()
@@ -188,7 +192,7 @@ class recipeEditorController(controller):
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.model.get('db').deleteRecipe(self.model.window[self.recFields['Title']].get())
+            self.model.get('db').deleteRecipe(self.master.window[self.recFields['Title']].get())
             self.clearFields()
 
     # def searchdb(self, query):

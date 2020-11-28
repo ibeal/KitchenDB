@@ -53,8 +53,7 @@ class recipeEditor(sg.Tab, view):
             self.labeledEntry('Title'),
             [
                 *self.labeledEntry('Prep Time',size=(5,1)),
-                *self.labeledEntry('Cook Time',size=(5,1)),
-                *self.labeledEntry('Total Time',size=(5,1))
+                *self.labeledEntry('Cook Time',size=(5,1))
             ],
             [
                 *self.labeledEntry('Yield',size=(10,1)),
@@ -125,27 +124,29 @@ class recipeEditor(sg.Tab, view):
                 # with newlines
                 value = '\n'.join([f'{a,b,c}' for a,b,c in value])
                 value += '\n'
+            elif field == "Total Time":
+                continue
             # clear the field
             # self.recFields[field].delete(SPOT, tk.END)
             # fill the field
             self.master.window[self.recFields[field]].update(value=value)
             # self.master.window.fill({self.recFields[field]: value})
 
-    def addIng(self, choice, entry):
-        """Add ingredient to the ingredient text box
-        Input:
-        self.optionsTable: Table from which to pull the data
-        entry: the entry box that contains the amount
-        dest: the text box to put the aquired ingredient
-        """
-        logger.debug('Add Ingredient Button pressed')
-        amount = entry
-        if len(amount) <= 0:
-            sg.popup('The amount box is empty.',title='Amount Missing')
-        else:
-            choice = self.ingTableData[choice]
-            ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
-            self.master.window[self.recFields['Ingredients']].update(value=ing, append=True)
+    # def addIng(self, choice, entry):
+    #     """Add ingredient to the ingredient text box
+    #     Input:
+    #     self.optionsTable: Table from which to pull the data
+    #     entry: the entry box that contains the amount
+    #     dest: the text box to put the aquired ingredient
+    #     """
+    #     logger.debug('Add Ingredient Button pressed')
+    #     amount = entry
+    #     if len(amount) <= 0:
+    #         sg.popup('The amount box is empty.',title='Amount Missing')
+    #     else:
+    #         choice = self.ingTableData[choice]
+    #         ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
+    #         self.master.window[self.recFields['Ingredients']].update(value=ing, append=True)
 
     def clearFields(self):
         """Simple function that clears all the fields in the recipe view"""
@@ -153,94 +154,98 @@ class recipeEditor(sg.Tab, view):
             # clear the field
             self.master.window[self.recFields[field]].update(value='')
 
-    def getFields(self):
-        """Function that records all the information in the fields and returns
-        a recipe object.
-        Input:
-        self.recFields: dictionary of all the recipe fields
-        Output:
-        recipe: recipe created from all the fields
-        """
-        # result object, it is a temp holder for the information
-        res = {}
-        # iterate over recFields, field is string name of field being analyzed,
-        # value is the actual text/entry itself
-        for field in recipe.pretty_fields:
-            value = self.master.window[self.recFields[field]]
-            if field == "Directions":
-                # get info
-                text = value.get()
-                # data preprocessing, three things going on
-                # text.split('\n') returns list of lines in textbox
-                # list comprehension goes over the list and removes empty strings
-                # then the list is stringed
-                res[field] = str([val for val in text.split('\n') if len(val) > 0])
-            elif field == "Ingredients":
-                text = value.get()
-                # only the first two things happen here
-                temp = [val for val in text.split('\n') if len(val) > 0]
-                # Additionally, the tuples are interpreted here,
-                # then the whole thing is stringified
-                res[field] = str([recipe.interp(s) for s in temp])
-            else:
-                # else, it's an entry box
-                res[field] = value.get()
-        # create the recipe, the list comprehension is to put the dictionary in order
+    # def getFields(self):
+    #     """Function that records all the information in the fields and returns
+    #     a recipe object.
+    #     Input:
+    #     self.recFields: dictionary of all the recipe fields
+    #     Output:
+    #     recipe: recipe created from all the fields
+    #     """
+    #     # result object, it is a temp holder for the information
+    #     res = {}
+    #     # iterate over recFields, field is string name of field being analyzed,
+    #     # value is the actual text/entry itself
+    #     for field in recipe.pretty_fields:
+    #         value = self.master.window[self.recFields[field]]
+    #         if field == "Directions":
+    #             # get info
+    #             text = value.get()
+    #             # data preprocessing, three things going on
+    #             # text.split('\n') returns list of lines in textbox
+    #             # list comprehension goes over the list and removes empty strings
+    #             # then the list is stringed
+    #             res[field] = str([val for val in text.split('\n') if len(val) > 0])
+    #         elif field == "Ingredients":
+    #             text = value.get()
+    #             # only the first two things happen here
+    #             temp = [val for val in text.split('\n') if len(val) > 0]
+    #             # Additionally, the tuples are interpreted here,
+    #             # then the whole thing is stringified
+    #             res[field] = str([recipe.interp(s) for s in temp])
+    #         elif field == "Total Time":
+    #             res["Total Time"] = res["Prep Time"] + res["Cook Time"]
+    #         else:
+    #             # else, it's an entry box
+    #             res[field] = value.get()
+    #     # create the recipe, the list comprehension is to put the dictionary in order
+    #
+    #     # return recipe([res[key] for key in recipe.pretty_fields])
+    #     return recipe(res) if len(res['Title']) > 0 else None
 
-        # return recipe([res[key] for key in recipe.pretty_fields])
-        return recipe(res) if len(res['Title']) > 0 else None
+    # def saveFields(self):
+    #     """Function that records all the information in the fields and returns
+    #     a recipe object. The object is sent to the database
+    #     Input:
+    #     self.recFields: dictionary of all the recipe fields
+    #     self.model.db: database to send the information
+    #     """
+    #
+    #     # result object, it is a temp holder for the information
+    #     res = {}
+    #     # iterate over recFields, field is string name of field being analyzed,
+    #     # value is the actual text/entry itself
+    #     for field in recipe.pretty_fields:
+    #         value = self.master.window[self.recFields[field]]
+    #         if not field in ['Source']:
+    #             if len(value.get()) <= 0:
+    #                 sg.PopupError(f"Missing the {field} field!")
+    #                 return
+    #         if field == "Directions":
+    #             # get info
+    #             text = value.get()
+    #             # data preprocessing, three things going on
+    #             # text.split('\n') returns list of lines in textbox
+    #             # list comprehension goes over the list and removes empty strings
+    #             # then the list is stringed
+    #             res[field] = str([val for val in text.split('\n') if len(val) > 0])
+    #         elif field == "Ingredients":
+    #             text = value.get()
+    #             # only the first two things happen here
+    #             temp = [val for val in text.split('\n') if len(val) > 0]
+    #             # Additionally, the tuples are interpreted here,
+    #             # then the whole thing is stringified
+    #             res[field] = str([recipe.interp(s) for s in temp])
+    #         elif field == "Total Time":
+    #             res["Total Time"] = res["Prep Time"] + res["Cook Time"]
+    #         else:
+    #             # else, it's an entry box
+    #             res[field] = value.get()
+    #     # create the recipe, the list comprehension is to put the dictionary in order
+    #     # rec = recipe([res[key] for key in recipe.pretty_fields])
+    #     rec = recipe(res)
+    #     if self.model.get('db').recipeExists(rec.title, rec.source):
+    #         if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
+    #             # save to db
+    #             self.model.get('db').deleteRecipe(rec)
+    #             self.model.get('db').saveRecipe(rec)
+    #     else:
+    #         self.model.get('db').saveRecipe(rec)
 
-    def saveFields(self):
-        """Function that records all the information in the fields and returns
-        a recipe object. The object is sent to the database
-        Input:
-        self.recFields: dictionary of all the recipe fields
-        self.model.db: database to send the information
-        """
-
-        # result object, it is a temp holder for the information
-        res = {}
-        # iterate over recFields, field is string name of field being analyzed,
-        # value is the actual text/entry itself
-        for field in recipe.pretty_fields:
-            value = self.master.window[self.recFields[field]]
-            if not field in ['Source']:
-                if len(value.get()) <= 0:
-                    sg.PopupError(f"Missing the {field} field!")
-                    return
-            if field == "Directions":
-                # get info
-                text = value.get()
-                # data preprocessing, three things going on
-                # text.split('\n') returns list of lines in textbox
-                # list comprehension goes over the list and removes empty strings
-                # then the list is stringed
-                res[field] = str([val for val in text.split('\n') if len(val) > 0])
-            elif field == "Ingredients":
-                text = value.get()
-                # only the first two things happen here
-                temp = [val for val in text.split('\n') if len(val) > 0]
-                # Additionally, the tuples are interpreted here,
-                # then the whole thing is stringified
-                res[field] = str([recipe.interp(s) for s in temp])
-            else:
-                # else, it's an entry box
-                res[field] = value.get()
-        # create the recipe, the list comprehension is to put the dictionary in order
-        # rec = recipe([res[key] for key in recipe.pretty_fields])
-        rec = recipe(res)
-        if self.model.get('db').recipeExists(rec.title, rec.source):
-            if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
-                # save to db
-                self.model.get('db').deleteRecipe(rec)
-                self.model.get('db').saveRecipe(rec)
-        else:
-            self.model.get('db').saveRecipe(rec)
-
-    def deleteRecipe(self):
-        if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.model.get('db').deleteRecipe(self.master.window[self.recFields['Title']].get())
-            self.clearFields()
+    # def deleteRecipe(self):
+    #     if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
+    #         self.model.get('db').deleteRecipe(self.master.window[self.recFields['Title']].get())
+    #         self.clearFields()
 
     # def searchdb(self, query):
     #     row, col = self.recTableDim
