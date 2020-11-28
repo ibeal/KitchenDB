@@ -62,8 +62,9 @@ class gui:
             self.window = sg.Window('KitchenDB',
                                     layout,
                                     finalize=True,
-                                    size=(1280,800),
-                                    location=(0,0))
+                                    size=(800,1280),
+                                    location=(0,0),
+                                    grab_anywhere=True)
         else:
             self.window = sg.Window('KitchenDB',
                                     layout,
@@ -81,8 +82,8 @@ class gui:
             return json.load(f)
 
 def main(android=False):
-    # g = gui(android)
-    g = gui(True)
+    g = gui(android)
+    # g = gui(True)
     g.controller.mainLoop()
 
 if __name__ == '__main__':
