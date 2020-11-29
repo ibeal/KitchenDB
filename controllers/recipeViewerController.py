@@ -67,7 +67,7 @@ class recipeViewerController(controller):
                  'json':('JSON Files', '*.json'),
                  'yaml':('YAML Files', '*.yaml')}
         recTitle = rec.title.replace(' ', '-')
-        defaultSave = self.model.getPref('recipeFolder') + recTitle + f'.{defaultType}'
+        defaultSave = self.model.get('prefs', 'recipeFolder') + recTitle + f'.{defaultType}'
         layout = [[sg.Text('Export Details')],
           [
             sg.T('Destination'),
