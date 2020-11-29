@@ -24,7 +24,7 @@ class recipeEditor(sg.Tab, view):
             {"recFields":self.recFields,
              "ingTableKey":self.ingTableKey,
              "ingTable":self.ingTable})
-        # self.model.seta("tabData", "-EDITOR-", value={"recFields":self.recFields, "ingTableKey":self.ingTableKey})
+        # self.model.set("tabData", "-EDITOR-", value={"recFields":self.recFields, "ingTableKey":self.ingTableKey})
         # self.controller = recipeEditorController(self.recFields, self.ingTableKey)
 
     def labeledEntry(self,label,key=None,**kwargs):
@@ -112,7 +112,7 @@ class recipeEditor(sg.Tab, view):
         """
         logger.debug("fill fields callback with:")
         logger.debug(rec)
-        # self.model.set('activeRecipe', rec)
+        # self.model.set('activeRecipe', value=rec)
         # rec.gets returns a dictionary with all the information in it
         for field, value in rec.guts().items():
             if field == "Directions":
@@ -151,6 +151,8 @@ class recipeEditor(sg.Tab, view):
     def clearFields(self):
         """Simple function that clears all the fields in the recipe view"""
         for field in self.recFields:
+            if field == "Total Time":
+                continue
             # clear the field
             self.master.window[self.recFields[field]].update(value='')
 
@@ -263,8 +265,8 @@ class recipeEditor(sg.Tab, view):
     #     # preppend header list
     #     # data = [header, *data]
     #     # pass all data to update table
-    #     self.model.seta("state", "lastTableAction", value="search", notify=False)
-    #     self.model.seta("state", "lastSearch", value=query, notify=False)
+    #     self.model.set("state", "lastTableAction", value="search", notify=False)
+    #     self.model.set("state", "lastSearch", value=query, notify=False)
     #     self.tableData = recs
     #     self.recTable.update(values = data)
 

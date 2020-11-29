@@ -25,8 +25,8 @@ class recipeEditorController(controller):
             self.saveFields()
             # self.recipe_modal(self.getFields())
             rec = self.getFields()
-            self.model.set('activeRecipe', rec)
-            self.model.set('active_view', '-VIEWER-')
+            self.model.set('activeRecipe', value=rec)
+            self.model.set('active_view', value='-VIEWER-')
             return True
         elif event == '-SAVE-RECIPE-':
             self.saveFields()
@@ -37,7 +37,7 @@ class recipeEditorController(controller):
                 return True
             # delete recipe and return to table view
             self.deleteRecipe()
-            self.model.set('active_view', '-TABLE-')
+            self.model.set('active_view', value='-TABLE-')
             return True
         elif event == '-CLEAR-RECIPE-':
             self.clearFields()
@@ -62,7 +62,7 @@ class recipeEditorController(controller):
         """
         logger.debug("fill fields callback with:")
         logger.debug(rec)
-        self.model.set('activeRecipe', rec)
+        self.model.set('activeRecipe', value=rec)
         # rec.gets returns a dictionary with all the information in it
         for field, value in rec.guts().items():
             if field == "Directions":
@@ -211,8 +211,8 @@ class recipeEditorController(controller):
     #     # preppend header list
     #     # data = [header, *data]
     #     # pass all data to update table
-    #     self.model.seta("state", "lastTableAction", value="search", notify=False)
-    #     self.model.seta("state", "lastSearch", value=query, notify=False)
+    #     self.model.set("state", "lastTableAction", value="search", notify=False)
+    #     self.model.set("state", "lastSearch", value=query, notify=False)
     #     self.tableData = recs
     #     self.recTable.update(values = data)
 

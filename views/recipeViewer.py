@@ -66,7 +66,7 @@ class recipeViewer(sg.Tab, view):
             if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            # self.model.get('activeRecipe').outputToTxt(self.model.getPrefs('recipeFolder') + 'text.txt')
+            # self.model.get('activeRecipe').outputToTxt(self.model.get('prefs', 'recipeFolder') + 'text.txt')
             return True
         elif event == '-VIEWER-EDIT-':
             # navigate to editor tab
@@ -103,13 +103,13 @@ class recipeViewer(sg.Tab, view):
                  'json':('JSON Files', '*.json'),
                  'yaml':('YAML Files', '*.yaml')}
         recTitle = rec.title.replace(' ', '-')
-        defaultSave = self.model.getPref('recipeFolder') + recTitle + f'.{defaultType}'
+        defaultSave = self.model.get('prefs', 'recipeFolder') + recTitle + f'.{defaultType}'
         layout = [[sg.Text('Export Details')],
           [
             sg.T('Destination'),
             sg.In(default_text=defaultSave, key='-EXPORT-FOLDER-'),
             sg.FileSaveAs('Browse',
-                initial_folder=self.model.getPref('recipeFolder'))
+                initial_folder=self.model.get('prefs', 'recipeFolder'))
           ],
           [
             sg.T('Format'),

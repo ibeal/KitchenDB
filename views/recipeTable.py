@@ -93,9 +93,9 @@ class recipeTable(sg.Tab, view):
         # pass all data to update table
 
         # can't notify after first set, because data isn't complete
-        self.model.seta("state", "lastTableAction", value="search", notify=False)
+        self.model.set("state", "lastTableAction", value="search", notify=False)
         # I could notify after the second one, but for now it's not needed
-        self.model.seta("state", "lastSearch", value=query, notify=False)
+        self.model.set("state", "lastSearch", value=query, notify=False)
         self.tableData = recs
         self.recTable.update(values = data)
 

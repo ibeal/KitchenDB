@@ -27,16 +27,16 @@ class recipeTableController(controller):
             # click on table, event to be handled by main
             # self.master.switchTabs('-EDITOR-')
             # self.master.deferHandle('-EDITOR-', 'fill', values)
-            # self.model.getView('-VIEWER-').Select()
-            self.model.set('active_view', '-VIEWER-')
-            self.model.set('activeRecipe', self.tableData[values['-RECIPE-TABLE-'][0]])
+            # self.model.get('views', ('-VIEWER-').Select()
+            self.model.set('active_view', value='-VIEWER-')
+            self.model.set('activeRecipe', value=self.tableData[values['-RECIPE-TABLE-'][0]])
             return True
         elif event == '-RECIPE-SBUTTON-':
             self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
             return True
         elif event == '-ADDNEW-':
-            self.model.set('activeRecipe', None)
-            self.model.set('active_view', '-EDITOR-')
+            self.model.set('activeRecipe', value=None)
+            self.model.set('active_view', value='-EDITOR-')
         return False
 
     def searchdb(self, query, sortby):
@@ -54,8 +54,8 @@ class recipeTableController(controller):
         # preppend header list
         # data = [header, *data]
         # pass all data to update table
-        self.model.seta("state", "lastTableAction", value="search", notify=False)
-        self.model.seta("state", "lastSearch", value=query, notify=False)
+        self.model.set("state", "lastTableAction", value="search", notify=False)
+        self.model.set("state", "lastSearch", value=query, notify=False)
         self.tableData = recs
         self.recTable.update(values = data)
 

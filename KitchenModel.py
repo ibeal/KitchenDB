@@ -56,12 +56,7 @@ class KitchenModel:
     def addObserver(self, observer):
         self.data["observers"].append(observer)
 
-    def set(self, key, value):
-        # self.data[key] = value
-        # self.notifyOberservers(key)
-        self.seta(key, value=value)
-
-    def seta(self, *args, value=None, notify=True, merge=False):
+    def set(self, *args, value=None, notify=True, merge=False):
         if len(args) <= 0:
             raise Exception("Tried to set value in model, but no key given")
         elif len(args) == 1:
@@ -81,29 +76,11 @@ class KitchenModel:
         data[args[0]] = self.setHelper(data[args[0]], value, *args[1:])
         return data
 
-    def setView(self, key, value):
-        self.seta("views", key, value=value)
-
-    def setState(self, key, value):
-        self.seta("state", key, value=value)
-
-    def setPref(self, key, value):
-        self.seta("prefs", key, value=value)
-
     def get(self, *args):
         data = self.data
         for arg in args:
             data = data[arg]
         return data
-
-    def getView(self, key):
-        return self.data.get("views", key)
-
-    def getState(self, key):
-        return self.data.get("state", key)
-
-    def getPref(self, key):
-        return self.data.get("prefs", key)
 
     def notifyOberservers(self, key=None):
         for ob in self.data["observers"]:

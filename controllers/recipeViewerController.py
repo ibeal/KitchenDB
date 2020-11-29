@@ -31,14 +31,14 @@ class recipeViewerController(controller):
             if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            # self.model.get('activeRecipe').outputToTxt(self.model.getPrefs('recipeFolder') + 'text.txt')
+            # self.model.get('activeRecipe').outputToTxt(self.model.get('prefs', 'recipeFolder') + 'text.txt')
             return True
         elif event == '-VIEWER-EDIT-':
             # navigate to editor tab
             if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
-            self.model.set('active_view', '-EDITOR-')
+            self.model.set('active_view', value='-EDITOR-')
             return True
         elif event == '-VIEWER-MULTBY-':
             if self.model.get('activeRecipe') == None:
@@ -56,7 +56,7 @@ class recipeViewerController(controller):
         self.multby.update('1')
 
     def newRecipe(self, rec):
-        self.model.set('activeRecipe', rec)
+        self.model.set('activeRecipe', value=rec)
         self.resetMult()
         self.fillFields(rec)
 
@@ -67,13 +67,13 @@ class recipeViewerController(controller):
                  'json':('JSON Files', '*.json'),
                  'yaml':('YAML Files', '*.yaml')}
         recTitle = rec.title.replace(' ', '-')
-        defaultSave = self.model.getPref('recipeFolder') + recTitle + f'.{defaultType}'
+        defaultSave = self.model.get('prefs', 'recipeFolder') + recTitle + f'.{defaultType}'
         layout = [[sg.Text('Export Details')],
           [
             sg.T('Destination'),
             sg.In(default_text=defaultSave, key='-EXPORT-FOLDER-'),
             sg.FileSaveAs('Browse',
-                initial_folder=self.model.getPref('recipeFolder'))
+                initial_folder=self.model.get('prefs', 'recipeFolder'))
           ],
           [
             sg.T('Format'),

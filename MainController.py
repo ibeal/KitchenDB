@@ -39,9 +39,12 @@ class MainController:
                 self.window.disable()
                 self.prefEditor()
                 self.window.enable()
-            elif event == 'Recipe':
+            elif event == 'Import Recipe':
                 # import recipe
-                recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True).split(';')
+                recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True)
+                if not recipe_files:
+                    continue
+                recipe_files = recipe_files.split(';')
                 for file in recipe_files:
                     new_rec = recipe(file=file)
                     if self.model.get("db").recipeExists(new_rec):
@@ -53,7 +56,7 @@ class MainController:
                         self.model.get("db").saveRecipe(new_rec)
                 self.model.get('views')['-TABLE-'].Select()
                 self.model.get('views')['-TABLE-'].refreshRecipeTable()
-            elif event == 'Database':
+            elif event == 'Import Database':
                 # import database
                 pass
 
@@ -63,13 +66,13 @@ class MainController:
 
     def switchTabs(self, tab):
         self.model.get('views')[tab].Select()
-        # self.model.set('active_view', tab)
+        # self.model.set('active_view', value=tab)
 
     def deferHandle(self, tab, event, values):
         return self.model.get('controllers')[tab].handle(event, values)
 
     def activateRecipe(self, rec):
-        self.model.set("activeRecipe", rec)
+        self.model.set("activeRecipe", value=rec)
 
     def savePrefs(self):
         with open(self.model.get('prefFile'), 'w') as f:

@@ -25,16 +25,16 @@ class gui:
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
         self.recTableDim = (20,6)
         self.tableData = None
-        self.model.seta('prefs', value=self.importPrefs(), merge=True)
+        self.model.set('prefs', value=self.importPrefs(), merge=True)
         sg.theme(self.model.get('prefs')['theme'])
 
         self.expands = {'x':[], 'y':[], 'xy':[]}
-        self.menu_def = [['&File', ['Import...', ['Recipe', 'Database'], '&Save', '---', 'E&xit'  ]],
+        self.menu_def = [['&File', ['Import Recipe', 'Import Database', '&Save', '---', 'E&xit'  ]],
         ['&Edit', ['Preferences'],],
         ['&Help', '&About...'],]
         # self.state = {"lastTableAction": "default"}
 
-        # self.model.set('views', {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None})
+        # self.model.set('views', value={'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None})
         self.recTable = '-RECIPE-TABLE-'
         logger.debug('Creating Table...')
         # part of the tab creation is adding itself to the model
@@ -45,12 +45,12 @@ class gui:
         self.model.addObserver(editor.recipeEditor('Recipe Editor', master=self, key='-EDITOR-', ingTableKey=self.ingTable))
 
         self.model.addObserver(viewer.recipeViewer('Recipe Viewer', master=self, key='-VIEWER-'))
-        self.model.setView('-TABS-', sg.TabGroup([
+        self.model.set('views', '-TABS-', value=sg.TabGroup([
             [self.model.get('views')['-TABLE-']],
             [self.model.get('views')['-EDITOR-']],
             [self.model.get('views')['-VIEWER-']]
         ], key="-TABS-"))
-        # self.expands['xy'].append(self.model.getView('-TABS-'))
+        # self.expands['xy'].append(self.model.get('views', ('-TABS-'))
 
         # Tabbed Layout
         layout = [
