@@ -39,7 +39,7 @@ class MainController:
                 # self.window.disable()
                 self.prefEditor()
                 # self.window.enable()
-            elif event == 'Recipe':
+            elif event == 'Import Recipe':
                 # import recipe
                 recipe_files = sg.popup_get_file('Enter a recipe file...', multiple_files=True)
                 if not recipe_files:
