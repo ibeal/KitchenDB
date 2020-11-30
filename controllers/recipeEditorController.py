@@ -182,23 +182,23 @@ class recipeEditorController(controller):
         # create the recipe, the list comprehension is to put the dictionary in order
         # rec = recipe([res[key] for key in recipe.pretty_fields])
         rec = recipe(res)
-        if self.model.get('db').recipeExists(rec.title, rec.source):
+        if self.model.get('RecipeAPI').recipeExists(rec.title, rec.source):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
-                self.model.get('db').deleteRecipe(rec)
-                self.model.get('db').saveRecipe(rec)
+                self.model.get('RecipeAPI').deleteRecipe(rec)
+                self.model.get('RecipeAPI').saveRecipe(rec)
         else:
-            self.model.get('db').saveRecipe(rec)
+            self.model.get('RecipeAPI').saveRecipe(rec)
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.model.get('db').deleteRecipe(self.master.window[self.recFields['Title']].get())
+            self.model.get('RecipeAPI').deleteRecipe(self.master.window[self.recFields['Title']].get())
             self.clearFields()
 
     # def searchdb(self, query):
     #     row, col = self.recTableDim
     #     # get search results
-    #     recs = self.model.get('db').search(query)
+    #     recs = self.model.get('RecipeAPI').search(query)
     #     data = []
     #     header = recipe.pretty_fields[:col]
     #     for rec in recs:

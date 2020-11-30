@@ -42,7 +42,7 @@ class recipeTableController(controller):
     def searchdb(self, query, sortby):
         # row, col = self.recTableDim
         # get search results
-        recs = self.model.get('db').search(query) if sortby == 'None' else self.model.get('db').search(query, sortby)
+        recs = self.model.get('RecipeAPI').search(query) if sortby == 'None' else self.model.get('RecipeAPI').search(query, sortby)
         data = []
         for rec in recs:
             recInfo = rec.guts()
@@ -64,10 +64,10 @@ class recipeTableController(controller):
     #     row, col = self.recTableDim
     #     if self.model.get("state", "lastTableAction") == "default":
     #         logger.debug("last state was default")
-    #         recs = self.model.get('db').recipes(count=row)
+    #         recs = self.model.get('RecipeAPI').recipes(count=row)
     #     elif self.model.get("state", "lastTableAction") == "search":
     #         logger.debug("last state was search")
-    #         recs = self.model.get('db').search(self.model.get("state", "lastSearch"))
+    #         recs = self.model.get('RecipeAPI').search(self.model.get("state", "lastSearch"))
     #     else:
     #         raise Exception("Unknown last state!")
     #     # create data matrix
