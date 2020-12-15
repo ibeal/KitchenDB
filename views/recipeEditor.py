@@ -122,7 +122,9 @@ class recipeEditor(sg.Tab, view):
             elif field == "Ingredients":
                 # data preprocessing, each direction is grouped in three and seperated
                 # with newlines
+                print(value)
                 value = '\n'.join([f'{a,b,c}' for a,b,c in value])
+                # value = '\n'.join([f'{ing}' for ing in value])
                 value += '\n'
             elif field == "Total Time":
                 continue

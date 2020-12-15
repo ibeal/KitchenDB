@@ -32,7 +32,7 @@ class recipeEditorController(controller):
             self.saveFields()
             return True
         elif event == '-DELETE-RECIPE-':
-            if self.model.get(activeRecipe) == None:
+            if self.model.get('activeRecipe') == None:
                 sg.PopupError("No recipe selected!", title="No Recipe")
                 return True
             # delete recipe and return to table view
@@ -99,6 +99,8 @@ class recipeEditorController(controller):
     def clearFields(self):
         """Simple function that clears all the fields in the recipe view"""
         for field in self.recFields:
+            if field == "Total Time":
+                continue
             # clear the field
             self.model.window[self.recFields[field]].update(value='')
 
@@ -115,7 +117,10 @@ class recipeEditorController(controller):
         # iterate over recFields, field is string name of field being analyzed,
         # value is the actual text/entry itself
         for field in recipe.pretty_fields:
-            value = self.master.window[self.recFields[field]]
+            if field == "Total Time":
+                res["Total Time"] = res["Prep Time"] + res["Cook Time"]
+                continue
+            value = self.model.window[self.recFields[field]]
             if field == "Directions":
                 # get info
                 text = value.get()
@@ -130,9 +135,12 @@ class recipeEditorController(controller):
                 temp = [val for val in text.split('\n') if len(val) > 0]
                 # Additionally, the tuples are interpreted here,
                 # then the whole thing is stringified
-                res[field] = str([recipe.interp(s) for s in temp])
-            elif field == "Total Time":
-                res["Total Time"] = res["Prep Time"] + res["Cook Time"]
+                res[field] = [recipe.interp(s) for s in temp]
+                for ing in res[field]:
+                    if len(ing) != 3:
+                        sg.PopupError(f'There is an error with the following ingredient, please delete it and re-add it: {ing}', title="Error!")
+                        return None
+                res[field] = str(res[field])
             else:
                 # else, it's an entry box
                 res[field] = value.get()
@@ -150,39 +158,42 @@ class recipeEditorController(controller):
         """
 
         # result object, it is a temp holder for the information
-        res = {}
-        # iterate over recFields, field is string name of field being analyzed,
-        # value is the actual text/entry itself
-        for field in recipe.pretty_fields:
-            value = self.master.window[self.recFields[field]]
-            if not field in ['Source']:
-                if len(value.get()) <= 0:
-                    sg.PopupError(f"Missing the {field} field!")
-                    return
-            if field == "Directions":
-                # get info
-                text = value.get()
-                # data preprocessing, three things going on
-                # text.split('\n') returns list of lines in textbox
-                # list comprehension goes over the list and removes empty strings
-                # then the list is stringed
-                res[field] = str([val for val in text.split('\n') if len(val) > 0])
-            elif field == "Ingredients":
-                text = value.get()
-                # only the first two things happen here
-                temp = [val for val in text.split('\n') if len(val) > 0]
-                # Additionally, the tuples are interpreted here,
-                # then the whole thing is stringified
-                res[field] = str([recipe.interp(s) for s in temp])
-            elif field == "Total Time":
-                res["Total Time"] = res["Prep Time"] + res["Cook Time"]
-            else:
-                # else, it's an entry box
-                res[field] = value.get()
+        # res = {}
+        # # iterate over recFields, field is string name of field being analyzed,
+        # # value is the actual text/entry itself
+        # for field in recipe.pretty_fields:
+        #     value = self.model.window[self.recFields[field]]
+        #     if not field in ['Source']:
+        #         if len(value.get()) <= 0:
+        #             sg.PopupError(f"Missing the {field} field!")
+        #             return
+        #     if field == "Directions":
+        #         # get info
+        #         text = value.get()
+        #         # data preprocessing, three things going on
+        #         # text.split('\n') returns list of lines in textbox
+        #         # list comprehension goes over the list and removes empty strings
+        #         # then the list is stringed
+        #         res[field] = str([val for val in text.split('\n') if len(val) > 0])
+        #     elif field == "Ingredients":
+        #         text = value.get()
+        #         # only the first two things happen here
+        #         temp = [val for val in text.split('\n') if len(val) > 0]
+        #         # Additionally, the tuples are interpreted here,
+        #         # then the whole thing is stringified
+        #         res[field] = str([recipe.interp(s) for s in temp])
+        #     elif field == "Total Time":
+        #         res["Total Time"] = res["Prep Time"] + res["Cook Time"]
+        #     else:
+        #         # else, it's an entry box
+        #         res[field] = value.get()
         # create the recipe, the list comprehension is to put the dictionary in order
         # rec = recipe([res[key] for key in recipe.pretty_fields])
-        rec = recipe(res)
-        if self.model.get('RecipeAPI').recipeExists(rec.title, rec.source):
+        rec = self.getFields()
+        if rec == None:
+            logger.debug('A NoneType recipe was returned from getfields, aborting saveFields...')
+            return
+        if self.model.get('RecipeAPI').recipeExists(rec):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.model.get('RecipeAPI').deleteRecipe(rec)
@@ -192,7 +203,7 @@ class recipeEditorController(controller):
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.model.get('RecipeAPI').deleteRecipe(self.master.window[self.recFields['Title']].get())
+            self.model.get('RecipeAPI').deleteRecipe(self.model.window[self.recFields['Title']].get())
             self.clearFields()
 
     # def searchdb(self, query):

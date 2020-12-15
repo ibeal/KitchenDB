@@ -29,7 +29,7 @@ class gui:
         sg.theme(self.model.get('prefs')['theme'])
 
         self.expands = {'x':[], 'y':[], 'xy':[]}
-        self.menu_def = [['&File', ['Import Recipe', 'Import Database', '&Save', '---', 'E&xit'  ]],
+        self.menu_def = [['&File', ['Import Recipe', 'Import Database', '---', 'E&xit'  ]],
         ['&Edit', ['Preferences'],],
         ['&Help', '&About...'],]
         # self.state = {"lastTableAction": "default"}

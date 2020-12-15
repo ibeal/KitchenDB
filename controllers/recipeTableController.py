@@ -58,6 +58,7 @@ class recipeTableController(controller):
         self.model.set("state", "lastSearch", value=query, notify=False)
         self.tableData = recs
         self.recTable.update(values = data)
+        self.model.set("tabData", "recTable", value=self.recTable)
 
     # def refreshRecipeTable(self):
     #     logger.debug("Refreshing recipe table")
