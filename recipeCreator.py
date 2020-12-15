@@ -66,12 +66,12 @@ class recipe:
                 print('Error creating recipe, creating default')
                 self.new()
                 return
-            self.prep_time = int(data[1])
-            self.cook_time = int(data[2])
+            self.prep_time = int(data[1]) # if len(data[1]) > 0 else 0
+            self.cook_time = int(data[2]) # if len(data[2]) > 0 else 0
             self.total_time = self.prep_time + self.cook_time
             self.yieldAmnt = data[3]
             self.category = data[4]
-            self.rating = int(data[5])
+            self.rating = int(data[5]) # if len(data[5]) > 0 else -1
             self.ingredients = self.interp(data[6])
             self.directions = self.interp(data[7])
             self.source = data[8]
@@ -81,12 +81,12 @@ class recipe:
                 print('Error creating recipe, creating default')
                 self.new()
                 return
-            self.prep_time = int(data['Prep Time'])
-            self.cook_time = int(data['Cook Time'])
+            self.prep_time = int(data['Prep Time']) if len(data['Prep Time']) > 0 else 0
+            self.cook_time = int(data['Cook Time']) if len(data['Cook Time']) > 0 else 0
             self.total_time = self.prep_time + self.cook_time
             self.yieldAmnt = data['Yield']
             self.category = data['Category']
-            self.rating = int(data['Rating'])
+            self.rating = int(data['Rating']) if len(data['Rating']) > 0 else -1
             self.ingredients = self.interp(data['Ingredients'])
             self.directions = self.interp(data['Directions'])
             self.source = data['Source']
@@ -188,6 +188,10 @@ class recipe:
             # if we have a open paren, skip to the closing paren
             elif line[index] == '(':
                 index = line.find(')', index+1)
+            elif line[index] == '"':
+                index = line.find('"', index+1)
+            elif line[index] == "'":
+                index = line.find("'", index+1)
             # if we have a comma, record the location
             elif line[index] == ',':
                 splits.append(index)

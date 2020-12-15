@@ -6,6 +6,10 @@ class database:
     APOSREPLACE = ';:'
     findApos = re.compile("'")
     fillApos = re.compile(APOSREPLACE)
+
+    PARENREPLACE = '^<'
+    findParen = re.compile('"')
+    fillParen = re.compile(PARENREPLACE)
     def __init__(self, returnRecipe=True, source='KitchenDB'):
         self.conn = sql.connect(source)
         self.cur = self.conn.cursor()
@@ -107,35 +111,88 @@ class database:
     #     if len(rec.title) <= 0:
     #             print('Error saving recipe to db, skipping...')
     #             return
-    #     query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
+    #     query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.db_clean(rec.ingredients))}", "{str(database.db_clean(rec.directions))}", "{rec.source}")'
     #     logger.debug('executing: ' + query)
     #     self.cur.execute(query)
     #     self.conn.commit()
 
     def pack(rec):
         # TODO: figure out these conversions
-        ing = "{str(database.aposFilter(rec.ingredients))}"
-        dirs = "{str(database.aposFilter(rec.directions))}"
+        ing = "{str(database.db_clean(rec.ingredients))}"
+        dirs = "{str(database.db_clean(rec.directions))}"
         return tuple(rec.title, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
 
     @staticmethod
     def aposFilter(dirty):
         """A function that takes a string and replaces all apostrophes with the global
         APOSREPLACE value, currently ';:'. Inverse of aposFiller."""
-        if not isinstance(dirty, str):
-            logger.debug(f'{dirty} is not a string. aposFilter aborting...')
-            return dirty
-        clean = database.findApos.sub(database.APOSREPLACE, dirty)
-        return clean
+        logger.debug(f'aposFilter called with {dirty} of type {type(dirty)}')
+        if isinstance(dirty, str):
+            clean = database.findApos.sub(database.APOSREPLACE, dirty)
+            return clean
+        elif isinstance(dirty, list):
+            return [database.aposFilter(dirt) for dirt in dirty]
+        elif isinstance(dirty, dict):
+            return {(key,database.aposFilter(dirt)) for key,dirt in dirty}
+        logger.debug(f'{dirty} is not a string. aposFilter aborting...')
+        return dirty
 
     @staticmethod
     def aposFiller(clean):
         """A function that takes a string and replaces all instances of COMMAREPLACE,
         currently ';:', with an apostrophe. Inverse of aposFilter."""
-        if not isinstance(clean, str):
-            logger.debug(f'{clean} is not a string. aposFiller aborting...')
+        logger.debug(f'aposFiller called with {clean} of type {type(clean)}')
+        if isinstance(clean, str):
+            dirty = database.fillApos.sub("'", clean)
+            return dirty
+        elif isinstance(clean, list):
+            return [database.aposFiller(cleanee) for cleanee in clean]
+        elif isinstance(clean, dict):
+            return {(key,database.aposFiller(cleanee)) for key,cleanee in clean}
+        logger.debug(f'{clean} is not a string. aposFiller aborting...')
+        return clean
+
+    @staticmethod
+    def parenFilter(dirty):
+        """A function that takes a string and replaces all parenthesis with the global
+        PARENREPLACE value, currently '?*'. Inverse of parenFiller."""
+        logger.debug(f'parenFilter called with {dirty} of type {type(dirty)}')
+        if isinstance(dirty, str):
+            clean = database.findParen.sub(database.PARENREPLACE, dirty)
             return clean
-        dirty = database.fillApos.sub("'", clean)
+        elif isinstance(dirty, list):
+            return [database.parenFilter(dirt) for dirt in dirty]
+        elif isinstance(dirty, dict):
+            return {(key,database.parenFilter(dirt)) for key,dirt in dirty}
+        logger.debug(f'{dirty} is not a string. parenFilter aborting...')
+        return dirty
+
+    @staticmethod
+    def parenFiller(clean):
+        """A function that takes a string and replaces all instances of PARENREPLACE,
+        currently ';:', with an parenthesis. Inverse of parenFilter."""
+        logger.debug(f'parenFiller called with {clean} of type {type(clean)}')
+
+        if isinstance(clean, str):
+            dirty = database.fillParen.sub('"', clean)
+            return dirty
+        elif isinstance(clean, list):
+            return [database.parenFiller(cleanee) for cleanee in clean]
+        elif isinstance(clean, dict):
+            return {(key,database.parenFiller(cleanee)) for key,cleanee in clean}
+        logger.debug(f'{clean} is not a string. parenFiller aborting...')
+        return clean
+
+    @staticmethod
+    def db_clean(dirty):
+        cleanish = database.aposFilter(dirty)
+        clean = database.parenFilter(cleanish)
+        return clean
+
+    @staticmethod
+    def db_dirt(clean):
+        dirt = database.aposFiller(clean)
+        dirty = database.parenFiller(dirt)
         return dirty
 
     def create_from_csv(self, f):

@@ -173,7 +173,7 @@ class mainGui(tk.Frame):
             tkmb.showinfo('Amount Missing', 'The amount box is empty.')
         else:
             choice = self.optionsTable.fullData[self.selectedIng]
-            ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')"
+            ing = f"('{database.db_clean(choice['description'])}', {choice['fdcId']}, '{amount}')"
             dest.insert(tk.END, ing)
             dest.insert(tk.END, '\n')
 

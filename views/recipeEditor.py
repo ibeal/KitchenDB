@@ -147,7 +147,7 @@ class recipeEditor(sg.Tab, view):
     #         sg.popup('The amount box is empty.',title='Amount Missing')
     #     else:
     #         choice = self.ingTableData[choice]
-    #         ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
+    #         ing = f"('{database.db_clean(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
     #         self.master.window[self.recFields['Ingredients']].update(value=ing, append=True)
 
     def clearFields(self):

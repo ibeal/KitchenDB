@@ -46,7 +46,7 @@ class recipeEditorController(controller):
             self.getIngResults(values['-INGREDIENT-SBOX-'])
             return True
         elif event == '-ADD-INGREDIENT-':
-            print(values)
+            # print(values)
             self.addIng(values[self.ingTableKey][0], values['-AMOUNT-'])
             return True
         return False
@@ -93,7 +93,7 @@ class recipeEditorController(controller):
             sg.popup('The amount box is empty.',title='Amount Missing')
         else:
             choice = self.ingTableData[choice]
-            ing = f"('{database.aposFilter(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
+            ing = f"('{database.db_clean(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
             self.model.window[self.recFields['Ingredients']].update(value=ing, append=True)
 
     def clearFields(self):
@@ -128,7 +128,9 @@ class recipeEditorController(controller):
                 # text.split('\n') returns list of lines in textbox
                 # list comprehension goes over the list and removes empty strings
                 # then the list is stringed
-                res[field] = str([val for val in text.split('\n') if len(val) > 0])
+                # res[field] = str([val for val in text.split('\n') if len(val) > 0])
+                res[field] = [val for val in text.split('\n') if len(val) > 0]
+
             elif field == "Ingredients":
                 text = value.get()
                 # only the first two things happen here
@@ -140,7 +142,6 @@ class recipeEditorController(controller):
                     if len(ing) != 3:
                         sg.PopupError(f'There is an error with the following ingredient, please delete it and re-add it: {ing}', title="Error!")
                         return None
-                res[field] = str(res[field])
             else:
                 # else, it's an entry box
                 res[field] = value.get()

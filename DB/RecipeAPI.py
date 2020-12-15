@@ -52,7 +52,7 @@ class RecipeAPI(AbstractAPI):
             res = self.db.cur.execute(command, ('%'+query+'%',sortby))
         else:
             res = self.db.cur.execute(command, ('%'+query+'%',))
-
+        self.unpack(res)
         return [recipe(i) for i in res]
 
     # def getColumns(self, table):
@@ -70,7 +70,18 @@ class RecipeAPI(AbstractAPI):
         if len(rec.title) <= 0:
                 print('Error saving recipe to db, skipping...')
                 return
-        query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.aposFilter(rec.ingredients))}", "{str(database.aposFilter(rec.directions))}", "{rec.source}")'
+        # print(database.db_clean(rec.directions))
+        # for dir in database.db_clean(rec.directions):
+        #     print(dir)
+        query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.db_clean(rec.ingredients))}", "{str(database.db_clean(rec.directions))}", "{rec.source}")'
         logger.debug('executing: ' + query)
         self.db.cur.execute(query)
         self.db.conn.commit()
+
+    def pack(self, rec):
+        print(pack)
+        pass
+
+    def unpack(self, res):
+        print(res)
+        pass
