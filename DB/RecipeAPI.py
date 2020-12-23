@@ -42,6 +42,7 @@ class RecipeAPI(AbstractAPI):
 
     def search(self, query, sortby=None):
         logger.debug(f'searching db for {query}')
+        query = database.db_clean(query)
         # res = self.db.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
         command = f"SELECT * FROM recipes WHERE title LIKE ?"
         if not sortby in ['None', None]:

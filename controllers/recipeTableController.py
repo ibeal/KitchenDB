@@ -29,7 +29,7 @@ class recipeTableController(controller):
             # self.master.deferHandle('-EDITOR-', 'fill', values)
             # self.model.get('views', ('-VIEWER-').Select()
             self.model.set('active_view', value='-VIEWER-')
-            self.model.set('activeRecipe', value=self.tableData[values['-RECIPE-TABLE-'][0]])
+            self.model.set('activeRecipe', value=self.model.get("tabData", "-TABLE-", "tableData")[values['-RECIPE-TABLE-'][0]])
             return True
         elif event == '-RECIPE-SBUTTON-':
             self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
@@ -37,6 +37,7 @@ class recipeTableController(controller):
         elif event == '-ADDNEW-':
             self.model.set('activeRecipe', value=None)
             self.model.set('active_view', value='-EDITOR-')
+            return True
         return False
 
     def searchdb(self, query, sortby):

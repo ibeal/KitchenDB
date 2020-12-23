@@ -34,6 +34,7 @@ class recipeTable(sg.Tab, view):
                 self.Select()
         else:
             self.refreshRecipeTable()
+            self.model.set("tabData", "-TABLE-", "tableData", value=self.tableData, notify=False)
 
     def createRecipeTable(self):
         rowCount, colCount = self.recTableDim

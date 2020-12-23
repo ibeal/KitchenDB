@@ -41,6 +41,7 @@ class recipeEditorController(controller):
             return True
         elif event == '-CLEAR-RECIPE-':
             self.clearFields()
+            self.model.set('activeRecipe', value=None)
             return True
         elif event == '-INGREDIENT-SBUTTON-':
             self.getIngResults(values['-INGREDIENT-SBOX-'])
@@ -198,6 +199,11 @@ class recipeEditorController(controller):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.model.get('RecipeAPI').deleteRecipe(rec)
+                self.model.get('RecipeAPI').saveRecipe(rec)
+        elif (self.model.get('activeRecipe') != None): # and (self.model.get('RecipeAPI').recipeExists(self.model.get('activeRecipe'))):
+            if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
+                # save to db
+                self.model.get('RecipeAPI').deleteRecipe(self.model.get('activeRecipe'))
                 self.model.get('RecipeAPI').saveRecipe(rec)
         else:
             self.model.get('RecipeAPI').saveRecipe(rec)

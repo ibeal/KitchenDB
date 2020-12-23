@@ -40,6 +40,7 @@ class KitchenModel:
                 'dbLocation': os.getcwd() + '/KitchenDB'}
             self.data["observers"] = []
             self.data["prefFile"] = 'userSettings.config'
+            self.data["recipeUpdate"] = False
 
     def beginNotify(self):
         self.notify = True
