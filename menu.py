@@ -1,16 +1,35 @@
-import dailyMenu
+from dailyMenu import *
+import datetime
+import pandas as pd
+from shoppingList import *
 
 class menu:
-    def __init__(self):
-        self.shoppingList = []
+    def __init__(self, start=None, end=None):
+        self.shopping = shoppingList()
         self.menus = {}
-        self.start_date = self.menus.keys()[0]
-        self.end_date = self.menus.keys()[-1]
+        self.start_date = datetime.date.fromisoformat(start) if start else None
+        self.end_date = datetime.date.fromisoformat(end) if end else None
+        if self.start_date and self.end_date and len(self.menus) == 0:
+            self.create_menus()
 
-    def addRecipe(self, rec, date):
-        self.menus[date].addRecipe(rec)
+    def startDate(self, start):
+        self.start_date = datetime.date.fromisoformat(start)
+        if self.start_date and self.end_date and len(self.menus) == 0:
+            self.create_menus()
 
-    def updateShoppingList(self):
-        newShopping = []
-        for menu in self.menus:
-            newShopping.append(menu.recipes)
+    def endDate(self, end):
+        self.end_date = datetime.date.fromisoformat(end)
+        if self.start_date and self.end_date and len(self.menus) == 0:
+            self.create_menus()
+
+    def create_menus(self):
+        if None in [self.start_date, self.end_date]:
+            raise Exception(f"tried to create menus while missing {'start' if not self.start_date else 'end'} date")
+        for date in pd.date_range(start=self.start_date, end=self.end_date).to_pydatetime().tolist():
+            self.menus[date.date().isoformat()] = dailyMenu(date.date().isoformat())
+
+    def addRecipe(self, rec, date, group):
+        self.menus[date].add(group, rec)
+
+    def updateShoppingList(self, data):
+        self.shopping.add(data)

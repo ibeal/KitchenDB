@@ -207,6 +207,7 @@ class recipeEditorController(controller):
                 self.model.get('RecipeAPI').saveRecipe(rec)
         else:
             self.model.get('RecipeAPI').saveRecipe(rec)
+        self.model.notifyOberservers()
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):

@@ -100,8 +100,8 @@ class recipe:
         self.yieldAmnt = ""
         self.category = ""
         self.rating = 0
-        self.ingredients = ""
-        self.directions = ""
+        self.ingredients = []
+        self.directions = []
         self.source = ""
 
     def readIn(self, fname):
@@ -250,96 +250,7 @@ class recipe:
         # if we reach the end, we return empty string
         return ''
 
-    @staticmethod
-    def getIng():
-        """Function that takes user input to build the ingredient list"""
-        print('\nNow we will gather the ingredients. Please search for the food item')
-        print('quit with "q" or a blank line')
-        ingredients = []
-        ingNum = 1
-        while True:
-            inp = input(f'\tPlease enter ingredient {ingNum}: ')
-            if inp.lower() == 'q':
-                logger.debug('Quiting...')
-                break
-            elif len(inp) == 0:
-                logger.debug('Quiting...')
-                break
-            response = apiSearchFood(inp)
-            options = response.json()['foods']
-            upperLimit = len(options) - 1
-            min, max = -5,0
-            while True:
-                if max + 5 > upperLimit - 1:
-                    logger.debug('Upper Limit hit')
-                    max = upperLimit
-                    if max - 5 >= 0:
-                        min = max - 5
-                    else:
-                        min = 0
-                else:
-                    min += 5
-                    max += 5
-                for i in range(min, max):
-                    with suppress(KeyError):
-                        print(f'\tOption {i+1}:')
-                        print(f'\t{options[i]["description"]}')
-                        if options[i]['dataType'] == 'Branded':
-                            print(f'\t{options[i]["brandOwner"]}')
-                            print(f'\t{options[i]["ingredients"]}')
-                        else:
-                            print(f'\t{options[i]["additionalDescriptions"]}')
-                    print()
 
-                choice = input('\t(press <Enter> for more choices, enter <discard> to search again)\n\tWhich choice looks best? ').lower()
-                if len(choice) < 1:
-                    continue
-                elif choice[0] == 'p':
-                    min = (int(choice[1:]) * 5) - 5
-                    max = min + 5
-                    logger.debug(f'Page Option:Showing options {min+1} to {max+1}...')
-                elif choice[0] == 'd':
-                    logger.debug('Discard Option: Discard previous search...')
-                    ingNum -= 1
-                    break
-                while isinstance(choice, str):
-                    try:
-                        choice = int(choice)
-                    except ValueError:
-                        print('\tInvalid Choice, Please try again')
-                        choice = input('\tWhich choice looks best? (press <Enter> for more choices) ')
-
-                if 1 <= choice <= max:
-                    amount = input('\tHow much of the ingredient does the recipe call for? ')
-                    amount = aposFilter(amount)
-                    print()
-                    food = (aposFilter(options[choice-1]['description']), options[choice-1]['fdcId'], amount)
-                    ingredients.append(food)
-                    logger.debug(f'Successfully add {food} to ingrdients')
-                    break
-            ingNum += 1
-        return ingredients
-
-    @staticmethod
-    def getDir():
-        """Function that asks for user input to build the direction list"""
-        directions = []
-        dirNum = 1
-        print('\nNow we will gather the directions. Please enter the directions')
-        print('quit with "q" or a blank line')
-        while True:
-            inp = input(f'\tPlease enter step number {dirNum}: ')
-            if inp.lower() == 'q':
-                logger.debug('Quiting...')
-                break
-            elif len(inp) < 1:
-                logger.debug('Quiting...')
-                break
-            else:
-                directions.append(f'{dirNum}. {inp}')
-                dirNum += 1
-                logger.debug(f'Successfully added "{inp}" to directions')
-        return directions
 
 
 if __name__ == "__main__":
