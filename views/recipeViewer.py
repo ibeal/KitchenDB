@@ -50,38 +50,38 @@ class recipeViewer(sg.Tab, view):
             if self.model.get("active_view") == "-VIEWER-":
                 self.Select()
 
-    def handle(self, event, values):
-        if event == '-VIEWER-PRINT-':
-            if self.model.get('activeRecipe') == None:
-                sg.PopupError("No recipe selected!", title="No Recipe")
-                return True
-            return True
-        elif event == '-VIEWER-EXPORT-':
-            if self.model.get('activeRecipe') == None:
-                sg.PopupError("No recipe selected!", title="No Recipe")
-                return True
-            self.exportModal(self.model.get('activeRecipe'))
-            return True
-        elif event == '-VIEWER-SHARE-':
-            if self.model.get('activeRecipe') == None:
-                sg.PopupError("No recipe selected!", title="No Recipe")
-                return True
-            # self.model.get('activeRecipe').outputToTxt(self.model.get('prefs', 'recipeFolder') + 'text.txt')
-            return True
-        elif event == '-VIEWER-EDIT-':
-            # navigate to editor tab
-            if self.model.get('activeRecipe') == None:
-                sg.PopupError("No recipe selected!", title="No Recipe")
-                return True
-            return False
-        elif event == '-VIEWER-MULTBY-':
-            if self.model.get('activeRecipe') == None:
-                sg.PopupError("No recipe selected!", title="No Recipe")
-                self.multby.update('1')
-                return True
-            self.fillFields(recipe(copyme=self.model.get('activeRecipe')) * float(values['-VIEWER-MULTBY-']))
-            return True
-        return False
+    # def handle(self, event, values):
+    #     if event == '-VIEWER-PRINT-':
+    #         if self.model.get('activeRecipe') == None:
+    #             sg.PopupError("No recipe selected!", title="No Recipe")
+    #             return True
+    #         return True
+    #     elif event == '-VIEWER-EXPORT-':
+    #         if self.model.get('activeRecipe') == None:
+    #             sg.PopupError("No recipe selected!", title="No Recipe")
+    #             return True
+    #         self.exportModal(self.model.get('activeRecipe'))
+    #         return True
+    #     elif event == '-VIEWER-SHARE-':
+    #         if self.model.get('activeRecipe') == None:
+    #             sg.PopupError("No recipe selected!", title="No Recipe")
+    #             return True
+    #         # self.model.get('activeRecipe').outputToTxt(self.model.get('prefs', 'recipeFolder') + 'text.txt')
+    #         return True
+    #     elif event == '-VIEWER-EDIT-':
+    #         # navigate to editor tab
+    #         if self.model.get('activeRecipe') == None:
+    #             sg.PopupError("No recipe selected!", title="No Recipe")
+    #             return True
+    #         return False
+    #     elif event == '-VIEWER-MULTBY-':
+    #         if self.model.get('activeRecipe') == None:
+    #             sg.PopupError("No recipe selected!", title="No Recipe")
+    #             self.multby.update('1')
+    #             return True
+    #         self.fillFields(recipe(copyme=self.model.get('activeRecipe')) * float(values['-VIEWER-MULTBY-']))
+    #         return True
+    #     return False
 
     def fillFields(self, rec):
         self.recipeBox.update(rec.__str__())

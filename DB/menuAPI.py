@@ -6,3 +6,6 @@ from dailyMenu import *
 class RecipeAPI(AbstractAPI):
     def __init__(self, db):
         self.db = db
+        self.db.createTable(name='menus', fields=menu.dataFields)
+
+    

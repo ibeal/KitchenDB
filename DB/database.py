@@ -1,5 +1,6 @@
 from recipeCreator import *
 from menu import *
+import sqlite3
 import logging
 logger = logging.getLogger('Debug Log')
 
@@ -12,7 +13,7 @@ class database:
     findParen = re.compile('"')
     fillParen = re.compile(PARENREPLACE)
     def __init__(self, returnRecipe=True, source='KitchenDB'):
-        self.conn = sql.connect(source)
+        self.conn = sql.connect(source, detect_types=sqlite3.PARSE_DECLTYPES)
         self.cur = self.conn.cursor()
         self.returnRecipe = returnRecipe
         # self.createTable('menus', menu.dataFields)
@@ -30,68 +31,16 @@ class database:
             print(row)
         print()
 
-    # def showAll(self):
-    #     self.result('select * from recipes')
-    #
-    # def recipes(self, first=0, last=None, count=1):
-    #     """A function that returns a custom number of rows from recipes
-    #         Input: first - int, number of the first row, default: 0
-    #                last - int, number of the last row
-    #                count - int, number of rows to get, default: 1
-    #                NOTE: if last is specified, count is overwritten
-    #
-    #         Output: array of recipe rows, with length of count"""
-    #     if last:
-    #         count = last - first
-    #     res = self.cur.execute(f"SELECT * FROM recipes LIMIT {first}, {count}")
-    #     if self.returnRecipe:
-    #         return [recipe(i) for i in res]
-    #     return [i for i in res]
-    #
-    # def recipeExists(self, name, source=""):
-    #     if isinstance(name, recipe):
-    #         name = name.title
-    #     logger.debug(f'checking for {name}')
-    #     res = self.cur.execute(f"SELECT * FROM recipes WHERE title='{name}'")
-    #     return len(list(res)) > 0
-    #
-    # def deleteRecipe(self, name):
-    #     if isinstance(name, recipe):
-    #         name = name.title
-    #     logger.debug(f'deleting recipe {name}')
-    #     res = self.cur.execute(f"DELETE FROM recipes WHERE title='{name}'")
-    #     self.conn.commit()
-    #
-    # def search(self, query, sortby=None):
-    #     logger.debug(f'searching db for {query}')
-    #     # res = self.cur.execute("SELECT * FROM recipes WHERE name LIKE '%'||?||'%'", (query,))
-    #     command = f"SELECT * FROM recipes WHERE title LIKE ?"
-    #     if not sortby in ['None', None]:
-    #         sortby = sortby.lower()
-    #         sortby = sortby.replace(' ', '_')
-    #         command += f' ORDER BY ?'
-    #         print(command)
-    #         res = self.cur.execute(command, ('%'+query+'%',sortby))
-    #     else:
-    #         res = self.cur.execute(command, ('%'+query+'%',))
-    #
-    #     if self.returnRecipe:
-    #         return [recipe(i) for i in res]
-    #     return [i for i in res]
+    def register_adapter(self, type, fun):
+        sqlite3.register_adapter(type, fun)
+
+    def register_converter(self, type, fun):
+        sqlite3.register_converter(type, fun)
 
     def getColumns(self, table):
         logger.debug(f'DEPRECATED getColumns CALLED')
         res = self.cur.execute(f"SELECT * FROM {table}")
         return [info[0] for info in res.description]
-
-    # def addNew(self, rec):
-    #     rec = recipe()
-    #     self.cur.execute('drop table if exists recipes')
-    #     self.saveRecipe(rec)
-    #     # with open('recipe.yaml') as f:
-    #     #     self.cur.execute('drop table if exists recipes')
-    #     #     self.create_from_yaml(f)
-
 
     def createTable(self, name='recipes', fields=[]):
         # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
@@ -106,16 +55,6 @@ class database:
         logger.debug('executing: ' + query)
         self.cur.execute(query)
         self.conn.commit()
-
-    # def saveRecipe(self, rec, table = 'recipes'):
-    #     self.createTable(table)
-    #     if len(rec.title) <= 0:
-    #             print('Error saving recipe to db, skipping...')
-    #             return
-    #     query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.db_clean(rec.ingredients))}", "{str(database.db_clean(rec.directions))}", "{rec.source}")'
-    #     logger.debug('executing: ' + query)
-    #     self.cur.execute(query)
-    #     self.conn.commit()
 
     def pack(rec):
         # TODO: figure out these conversions

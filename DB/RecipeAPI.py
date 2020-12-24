@@ -1,11 +1,14 @@
 from recipeCreator import *
 from DB.AbstractAPI import *
 from DB.database import *
+import json
 
 class RecipeAPI(AbstractAPI):
     def __init__(self, db):
         self.db = db
         self.db.createTable(name='recipes', fields=recipe.dataFields)
+        self.db.register_adapter(list, self.adapt_list_to_JSON)
+        self.db.register_converter("json", self.convert_JSON_to_list)
 
     def showAll(self):
         self.result('select * from recipes')
@@ -31,6 +34,15 @@ class RecipeAPI(AbstractAPI):
         logger.debug(f'checking for {name} by {source}')
         res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
         return len(list(res)) > 0
+
+    def recipeLookup(self, name='', source='', rec=None):
+        """Accepts either a name and source, or a recipe in the third slot"""
+        if rec:
+            name = rec.title
+            source = rec.source
+        logger.debug(f'checking for {name} by {source}')
+        res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
+        return recipe(res[0])
 
     def deleteRecipe(self, rec=None, name="", source=""):
         """Accepts either a name and source, or a recipe in the first slot"""
@@ -80,10 +92,8 @@ class RecipeAPI(AbstractAPI):
         self.db.cur.execute(query)
         self.db.conn.commit()
 
-    def pack(self, rec):
-        print(pack)
-        pass
+    def adapt_list_to_JSON(lst):
+        return json.dumps(lst).encode('utf8')
 
-    def unpack(self, res):
-        print(res)
-        pass
+    def convert_JSON_to_list(data):
+        return json.loads(data.decode('utf8'))

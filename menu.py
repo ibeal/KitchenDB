@@ -4,7 +4,10 @@ import pandas as pd
 from shoppingList import *
 
 class menu:
-    def __init__(self, start=None, end=None):
+    dataFields = ['name string', 'startDate string', 'endDate string',\
+      'ingredients list', 'directions list', 'source string']
+    def __init__(self, start=None, end=None, name=None):
+        self.name = name
         self.shopping = shoppingList()
         self.menus = {}
         self.start_date = datetime.date.fromisoformat(start) if start else None
