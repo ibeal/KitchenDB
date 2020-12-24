@@ -15,8 +15,7 @@ class database:
         self.conn = sql.connect(source)
         self.cur = self.conn.cursor()
         self.returnRecipe = returnRecipe
-        self.createTable('recipe', recipe.dataFields)
-        # self.createTable('menu', menu.dataFields)
+        # self.createTable('menus', menu.dataFields)
 
     def __del__(self):
         self.conn.close()
@@ -94,7 +93,7 @@ class database:
     #     #     self.create_from_yaml(f)
 
 
-    def createTable(self, name = 'recipes', fields = []):
+    def createTable(self, name='recipes', fields=[]):
         # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
         #   rating integer, ingredients string, directions string'
         # self.cur.execute('drop name ' + name)
@@ -102,7 +101,7 @@ class database:
         for v in fields:
             tabfields += f'{v}, '
         tabfields = tabfields[:-2]
-        query = 'create name if not exists ' + name + ' (' + tabfields + ')'
+        query = 'create table if not exists ' + name + ' (' + tabfields + ')'
 
         logger.debug('executing: ' + query)
         self.cur.execute(query)

@@ -199,14 +199,30 @@ class recipeEditorController(controller):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.model.get('RecipeAPI').deleteRecipe(rec)
-                self.model.get('RecipeAPI').saveRecipe(rec)
+                try:
+                    self.model.get('RecipeAPI').saveRecipe(rec)
+                except:
+                    sg.PopupError('Error occured during saving', title='Error')
+                    logger.debug("Unexpected error:", sys.exc_info()[0])
+                    return
+
         elif (self.model.get('activeRecipe') != None): # and (self.model.get('RecipeAPI').recipeExists(self.model.get('activeRecipe'))):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.model.get('RecipeAPI').deleteRecipe(self.model.get('activeRecipe'))
-                self.model.get('RecipeAPI').saveRecipe(rec)
+                try:
+                    self.model.get('RecipeAPI').saveRecipe(rec)
+                except:
+                    sg.PopupError('Error occured during saving', title='Error')
+                    logger.debug("Unexpected error:", sys.exc_info()[0])
+                    return
         else:
-            self.model.get('RecipeAPI').saveRecipe(rec)
+            try:
+                self.model.get('RecipeAPI').saveRecipe(rec)
+            except:
+                sg.PopupError('Error occured during saving', title='Error')
+                logger.debug("Unexpected error:", sys.exc_info()[0])
+                return
         self.model.notifyOberservers()
 
     def deleteRecipe(self):

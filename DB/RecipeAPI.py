@@ -5,6 +5,7 @@ from DB.database import *
 class RecipeAPI(AbstractAPI):
     def __init__(self, db):
         self.db = db
+        self.db.createTable(name='recipes', fields=recipe.dataFields)
 
     def showAll(self):
         self.result('select * from recipes')
@@ -67,7 +68,7 @@ class RecipeAPI(AbstractAPI):
         self.saveRecipe(rec)
 
     def saveRecipe(self, rec, table = 'recipes'):
-        self.db.createTable(table)
+        # self.db.createTable(table)
         if len(rec.title) <= 0:
                 print('Error saving recipe to db, skipping...')
                 return
