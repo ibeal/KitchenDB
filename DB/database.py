@@ -1,6 +1,6 @@
 from recipeCreator import *
 from menu import *
-import sqlite3
+import sqlite3 as sql
 import logging
 logger = logging.getLogger('Debug Log')
 
@@ -13,7 +13,7 @@ class database:
     findParen = re.compile('"')
     fillParen = re.compile(PARENREPLACE)
     def __init__(self, returnRecipe=True, source='KitchenDB'):
-        self.conn = sql.connect(source, detect_types=sqlite3.PARSE_DECLTYPES)
+        self.conn = sql.connect(source, detect_types=sql.PARSE_DECLTYPES)
         self.cur = self.conn.cursor()
         self.returnRecipe = returnRecipe
         # self.createTable('menus', menu.dataFields)
@@ -32,10 +32,10 @@ class database:
         print()
 
     def register_adapter(self, type, fun):
-        sqlite3.register_adapter(type, fun)
+        sql.register_adapter(type, fun)
 
     def register_converter(self, type, fun):
-        sqlite3.register_converter(type, fun)
+        sql.register_converter(type, fun)
 
     def getColumns(self, table):
         logger.debug(f'DEPRECATED getColumns CALLED')

@@ -1,5 +1,4 @@
 import csv, json, yaml, sys, logging, re, copy
-import sqlite3 as sql
 import requests as rq
 from contextlib import suppress
 logger = logging.getLogger('Debug Log')
