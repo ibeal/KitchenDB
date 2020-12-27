@@ -5,7 +5,7 @@ logger = logging.getLogger('Debug Log')
 
 class recipe:
     dataFields = ['title string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
-      'rating integer', 'ingredients list', 'directions list', 'source string']
+      'rating integer', 'ingredients json', 'directions json', 'source string']
     ugly_fields = ['title', 'prep_time', 'cook_time', 'yield', 'category', 'rating', 'ingredients', 'directions', 'source']
     pretty_fields = ['Title', 'Prep Time', 'Cook Time', 'Total Time','Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source']
     firstDigits = re.compile(r'\s*(\d+)(.*)')
@@ -91,7 +91,6 @@ class recipe:
             self.source = data['Source']
 
     def new(self):
-        """Function that builds the recipe.yaml file from user input"""
         self.title = ""
         self.prep_time = 0
         self.cook_time = 0
@@ -155,7 +154,7 @@ class recipe:
         tabfields = tabfields[:-2]
         # 'tabfields': tabfields,\
         yam = {'tabname': 'recipes', \
-                  'fields': [self.title, self.prep_time, self.cook_time, self.yieldAmnt, self.category, self.rating, str(self.ingredients), str(self.directions), self.source]
+                  'fields': [self.title, self.prep_time, self.cook_time, self.yieldAmnt, self.category, self.rating, self.ingredients, self.directions, self.source]
                 }
         # with open(filename,'a') as f:
         #     f.truncate(0) # clear file

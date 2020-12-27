@@ -8,6 +8,7 @@ from apiCalls import *
 from views import recipeEditor as editor
 from views import recipeTable as tableTab
 from views import recipeViewer as viewer
+from views import menuEditor
 from KitchenModel import *
 from MainController import *
 logger = logging.getLogger('mainGui Log')
@@ -44,11 +45,14 @@ class gui:
         logger.debug('Creating Editor...')
         self.model.addObserver(editor.recipeEditor('Recipe Editor', master=self, key='-EDITOR-', ingTableKey=self.ingTable))
 
+        self.model.addObserver(menuEditor.menuEditor('Menu Editor', master=self, key='-MENU-'))
+
         self.model.addObserver(viewer.recipeViewer('Recipe Viewer', master=self, key='-VIEWER-'))
         self.model.set('views', '-TABS-', value=sg.TabGroup([
             [self.model.get('views')['-TABLE-']],
             [self.model.get('views')['-EDITOR-']],
-            [self.model.get('views')['-VIEWER-']]
+            [self.model.get('views')['-VIEWER-']],
+            [self.model.get('views')['-MENU-']]
         ], key="-TABS-"))
         # self.expands['xy'].append(self.model.get('views', ('-TABS-'))
 

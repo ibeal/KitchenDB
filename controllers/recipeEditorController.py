@@ -158,39 +158,6 @@ class recipeEditorController(controller):
         self.recFields: dictionary of all the recipe fields
         self.model.db: database to send the information
         """
-
-        # result object, it is a temp holder for the information
-        # res = {}
-        # # iterate over recFields, field is string name of field being analyzed,
-        # # value is the actual text/entry itself
-        # for field in recipe.pretty_fields:
-        #     value = self.model.window[self.recFields[field]]
-        #     if not field in ['Source']:
-        #         if len(value.get()) <= 0:
-        #             sg.PopupError(f"Missing the {field} field!")
-        #             return
-        #     if field == "Directions":
-        #         # get info
-        #         text = value.get()
-        #         # data preprocessing, three things going on
-        #         # text.split('\n') returns list of lines in textbox
-        #         # list comprehension goes over the list and removes empty strings
-        #         # then the list is stringed
-        #         res[field] = str([val for val in text.split('\n') if len(val) > 0])
-        #     elif field == "Ingredients":
-        #         text = value.get()
-        #         # only the first two things happen here
-        #         temp = [val for val in text.split('\n') if len(val) > 0]
-        #         # Additionally, the tuples are interpreted here,
-        #         # then the whole thing is stringified
-        #         res[field] = str([recipe.interp(s) for s in temp])
-        #     elif field == "Total Time":
-        #         res["Total Time"] = res["Prep Time"] + res["Cook Time"]
-        #     else:
-        #         # else, it's an entry box
-        #         res[field] = value.get()
-        # create the recipe, the list comprehension is to put the dictionary in order
-        # rec = recipe([res[key] for key in recipe.pretty_fields])
         rec = self.getFields()
         if rec == None:
             logger.debug('A NoneType recipe was returned from getfields, aborting saveFields...')
@@ -223,7 +190,7 @@ class recipeEditorController(controller):
                 sg.PopupError('Error occured during saving', title='Error')
                 logger.debug("Unexpected error:", sys.exc_info()[0])
                 return
-        self.model.notifyOberservers()
+        self.model.set('activeRecipe', value=rec)
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):

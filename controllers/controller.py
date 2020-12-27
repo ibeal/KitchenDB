@@ -3,9 +3,9 @@ from abc import ABC, abstractmethod
 class controller(ABC):
 
     @abstractmethod
-    def setup():
+    def setup(self):
         ...
-        
+
     @abstractmethod
-    def handle(event, values):
+    def handle(self, event, values):
         ...

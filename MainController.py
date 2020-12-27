@@ -29,7 +29,7 @@ class MainController:
         while True:
             event, values = self.window.read()
             logger.debug(f'event was {event}')
-            logger.debug(f'value is {values}')
+            # logger.debug(f'value is {values}')
 
             if event == sg.WIN_CLOSED or event == 'Exit':
                 break
@@ -55,7 +55,8 @@ class MainController:
                     else:
                         self.model.get('RecipeAPI').saveRecipe(new_rec)
                 self.model.get('views')['-TABLE-'].Select()
-                self.model.get('views')['-TABLE-'].refreshRecipeTable()
+                self.model.notifyOberservers('recipe import')
+                # self.model.get('views')['-TABLE-'].refreshRecipeTable()
             elif event == 'Import Database':
                 # import database
                 pass

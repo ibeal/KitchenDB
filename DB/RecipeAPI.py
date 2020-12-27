@@ -6,9 +6,9 @@ import json
 class RecipeAPI(AbstractAPI):
     def __init__(self, db):
         self.db = db
+        # self.db.dropTable('recipes')
         self.db.createTable(name='recipes', fields=recipe.dataFields)
-        self.db.register_adapter(list, self.adapt_list_to_JSON)
-        self.db.register_converter("json", self.convert_JSON_to_list)
+
 
     def showAll(self):
         self.result('select * from recipes')
@@ -66,7 +66,7 @@ class RecipeAPI(AbstractAPI):
             res = self.db.cur.execute(command, ('%'+query+'%',sortby))
         else:
             res = self.db.cur.execute(command, ('%'+query+'%',))
-        self.unpack(res)
+        # self.unpack(res)
         return [recipe(i) for i in res]
 
     # def getColumns(self, table):
@@ -87,13 +87,10 @@ class RecipeAPI(AbstractAPI):
         # print(database.db_clean(rec.directions))
         # for dir in database.db_clean(rec.directions):
         #     print(dir)
-        query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.db_clean(rec.ingredients))}", "{str(database.db_clean(rec.directions))}", "{rec.source}")'
-        logger.debug('executing: ' + query)
-        self.db.cur.execute(query)
+        # query = f'insert into {table} values ("{rec.title}", {rec.prep_time}, {rec.cook_time}, "{rec.yieldAmnt}", "{rec.category}", {rec.rating}, "{str(database.db_clean(rec.ingredients))}", "{str(database.db_clean(rec.directions))}", "{rec.source}")'
+        # self.db.cur.execute(query)
+        data = rec.guts()
+        data.pop('Total Time')
+        # logger.debug('executing: ' + query)
+        self.db.cur.execute(f"insert into {table} values (?,?,?,?,?,?,?,?,?)", tuple(data.values()))
         self.db.conn.commit()
-
-    def adapt_list_to_JSON(lst):
-        return json.dumps(lst).encode('utf8')
-
-    def convert_JSON_to_list(data):
-        return json.loads(data.decode('utf8'))

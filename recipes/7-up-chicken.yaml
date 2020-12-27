@@ -6,10 +6,25 @@ fields:
 - 5 large chicken pieces
 - dinner
 - 10
-- '[(''Soy sauce'', 784308, ''2 cups''), (''VEGETABLE OIL'', 383645, ''1 cup''), (''Seven
-  and Seven'', 789633, ''20 oz''), (''GINGER'', 558295, ''1 tsp''), (''GARLIC'', 577280,
-  ''1-2 cloves'')]'
-- '[''mix wet ingredients'', ''smash cloves'', ''add garlic and ginger'', ''cook (BBQ
-  works great)'', ''enjoy!'']'
+- - - Soy sauce
+    - 784308
+    - 2 cups
+  - - VEGETABLE OIL
+    - 383645
+    - 1 cup
+  - - Seven and Seven
+    - 789633
+    - 20 oz
+  - - GINGER
+    - 558295
+    - 1 tsp
+  - - GARLIC
+    - 577280
+    - 1-2 cloves
+- - mix wet ingredients
+  - smash cloves
+  - add garlic and ginger
+  - cook (BBQ works great)
+  - enjoy!
 - ''
 tabname: recipes

@@ -4,8 +4,7 @@ import pandas as pd
 from shoppingList import *
 
 class menu:
-    dataFields = ['name string', 'startDate string', 'endDate string',\
-      'ingredients list', 'directions list', 'source string']
+    dataFields = ['name string', 'startDate string', 'endDate string', 'menus json']
     def __init__(self, start=None, end=None, name=None):
         self.name = name
         self.shopping = shoppingList()

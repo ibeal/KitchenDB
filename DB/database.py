@@ -17,6 +17,8 @@ class database:
         self.cur = self.conn.cursor()
         self.returnRecipe = returnRecipe
         # self.createTable('menus', menu.dataFields)
+        self.register_adapter(list, self.adapt_list_to_JSON)
+        self.register_converter("json", self.convert_JSON_to_list)
 
     def __del__(self):
         self.conn.close()
@@ -37,15 +39,22 @@ class database:
     def register_converter(self, type, fun):
         sql.register_converter(type, fun)
 
+    def adapt_list_to_JSON(self, lst):
+        return json.dumps(lst).encode('utf8')
+
+    def convert_JSON_to_list(self, data):
+        return json.loads(data.decode('utf8'))
+
     def getColumns(self, table):
         logger.debug(f'DEPRECATED getColumns CALLED')
         res = self.cur.execute(f"SELECT * FROM {table}")
         return [info[0] for info in res.description]
 
+    def dropTable(self, table):
+        self.cur.execute('drop table if exists recipes')
+        self.conn.commit()
+
     def createTable(self, name='recipes', fields=[]):
-        # tabfields = 'name string, prep_time integer, cook_time integer, yield string, category string,\
-        #   rating integer, ingredients string, directions string'
-        # self.cur.execute('drop name ' + name)
         tabfields = ''
         for v in fields:
             tabfields += f'{v}, '
@@ -58,15 +67,15 @@ class database:
 
     def pack(rec):
         # TODO: figure out these conversions
-        ing = "{str(database.db_clean(rec.ingredients))}"
-        dirs = "{str(database.db_clean(rec.directions))}"
+        ing = rec.ingredients
+        dirs = rec.directions
         return tuple(rec.title, rec.prep_time, rec.cook_time, rec.yieldAmnt, rec.category, rec.rating, ing, dirs, rec.source)
 
     @staticmethod
     def aposFilter(dirty):
         """A function that takes a string and replaces all apostrophes with the global
         APOSREPLACE value, currently ';:'. Inverse of aposFiller."""
-        logger.debug(f'aposFilter called with {dirty} of type {type(dirty)}')
+        logger.debug(f'DEPRECATED aposFilter called with {dirty} of type {type(dirty)}')
         if isinstance(dirty, str):
             clean = database.findApos.sub(database.APOSREPLACE, dirty)
             return clean
@@ -81,7 +90,7 @@ class database:
     def aposFiller(clean):
         """A function that takes a string and replaces all instances of COMMAREPLACE,
         currently ';:', with an apostrophe. Inverse of aposFilter."""
-        logger.debug(f'aposFiller called with {clean} of type {type(clean)}')
+        logger.debug(f'DEPRECATED aposFiller called with {clean} of type {type(clean)}')
         if isinstance(clean, str):
             dirty = database.fillApos.sub("'", clean)
             return dirty
@@ -96,7 +105,7 @@ class database:
     def parenFilter(dirty):
         """A function that takes a string and replaces all parenthesis with the global
         PARENREPLACE value, currently '?*'. Inverse of parenFiller."""
-        logger.debug(f'parenFilter called with {dirty} of type {type(dirty)}')
+        logger.debug(f'DEPRECATED parenFilter called with {dirty} of type {type(dirty)}')
         if isinstance(dirty, str):
             clean = database.findParen.sub(database.PARENREPLACE, dirty)
             return clean
@@ -111,7 +120,7 @@ class database:
     def parenFiller(clean):
         """A function that takes a string and replaces all instances of PARENREPLACE,
         currently ';:', with an parenthesis. Inverse of parenFilter."""
-        logger.debug(f'parenFiller called with {clean} of type {type(clean)}')
+        logger.debug(f'DEPRECATED parenFiller called with {clean} of type {type(clean)}')
 
         if isinstance(clean, str):
             dirty = database.fillParen.sub('"', clean)
