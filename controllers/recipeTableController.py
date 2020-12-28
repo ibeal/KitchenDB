@@ -21,8 +21,11 @@ class recipeTableController(controller):
         self.tableData = self.model.get("tabData", "-TABLE-", "tableData")
         self.recTableDim = self.model.get("tabData", "-TABLE-", "recTableDim")
         self.tableKey = self.model.get("tabData", "-TABLE-", "tableKey")
+        self.search = self.model.get("tabData", "-TABLE-", "searchbar")
 
     def handle(self, event, values):
+        if self.search.handle(event, values):
+            return True
         if event == self.tableKey:
             # click on table, event to be handled by main
             # self.master.switchTabs('-EDITOR-')

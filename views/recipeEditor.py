@@ -12,7 +12,7 @@ from controllers.recipeEditorController import *
 logger = logging.getLogger('Debug Log')
 
 class recipeEditor(sg.Tab, view):
-
+    mixed_number = re.compile(r'\s*([\d\\\/\s]+)(.*)')
     def __init__(self, title, master, *args, ingTableKey = '-OPTION-TABLE-', **kwargs):
         self.model = KitchenModel.getInstance()
         self.master = master
@@ -86,6 +86,8 @@ class recipeEditor(sg.Tab, view):
 
         addbox = [sg.T('Amount'), sg.In(key='-AMOUNT-')]
         self.master.expands['x'].append(addbox)
+        self.search = searchBar.searchBar(key='INGREDIENT', api=self.model.get('RecipeAPI'),
+                                          interactive=False)
         layout = [
                 [sg.Button('Clear',key='-CLEAR-RECIPE-'),
                  sg.Button('Delete Recipe',key='-DELETE-RECIPE-'),
@@ -95,7 +97,7 @@ class recipeEditor(sg.Tab, view):
                 [sg.T('Directions')],
                 [dir],
                 [sg.T('Ingredients')],
-                [searchBar.searchBar(self.master, key='INGREDIENT')],
+                [self.search],
                 [self.ingTable],
                 [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
                 [ing]

@@ -29,6 +29,7 @@ class KitchenModel:
             self.data["tabData"] = {}
             self.data["activeRecipe"] = None
             self.data["activeMenu"] = None
+            self.data["activeMenuDay"] = None
             self.data["recipe_table"] = None
             self.data["views"] = {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None}
             self.data["active_view"] = '-TABLE-'
@@ -68,7 +69,8 @@ class KitchenModel:
         overwrite the old one"""
         if len(args) <= 0:
             raise Exception("Tried to set value in model, but no key given")
-
+        elif not value:
+            raise Exception("No Value given for set!")
         # base case: only one arg left, set or merge the value
         elif len(args) == 1:
             if merge and isinstance(value, dict):

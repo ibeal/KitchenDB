@@ -11,6 +11,7 @@ from controllers.controller import controller
 logger = logging.getLogger('recipeEditorController Log')
 
 class recipeEditorController(controller):
+    mixed_number = re.compile(r'\s*(\d+)\s+(\d[\\\/]\d)(.*)')
     def __init__(self):
         self.model = KitchenModel.getInstance()
 
@@ -48,7 +49,11 @@ class recipeEditorController(controller):
             return True
         elif event == '-ADD-INGREDIENT-':
             # print(values)
-            self.addIng(values[self.ingTableKey][0], values['-AMOUNT-'])
+            amount = values['-AMOUNT-']
+            if '/' in amount or '\\' in amount:
+                matcher = recipeEditorController.mixed_number.match(amount)
+                amount = f'{float(matcher.group(1)) + eval(matcher.group(2))}{matcher.group(3)}'
+            self.addIng(values[self.ingTableKey][0], amount)
             return True
         return False
 

@@ -2,27 +2,32 @@ from dailyMenu import *
 import datetime
 import pandas as pd
 from shoppingList import *
+from data_container import *
 
-class menu:
+class menu(data_container):
     dataFields = ['name string', 'startDate string', 'endDate string', 'menus json']
     ugly_fields = ['name', 'startDate', 'endDate', 'menus']
     pretty_fields = ['Name', 'Start Date', 'End Date', 'Menus']
+    date_delimiter = ':'
     def __init__(self, data=None, copyme=None, readIn=None, start=None, end=None, name=None):
         if copyme:
             self.edit(copy.deepcopy(copyme).guts())
         elif data:
             self.edit(data)
-        elif file:
-            self.readIn(file)
+        elif readIn:
+            self.readIn(readIn)
         else:
             self.new(start, end, name)
 
     def new(self, start, end, name):
-        self.name = name
         self.shopping = shoppingList()
         self.menus = {}
         self.start_date = datetime.date.fromisoformat(start) if start else None
         self.end_date = datetime.date.fromisoformat(end) if end else None
+        if name in ['', None]:
+            self.name = f'{self.start_date.isoformat()}{menu.date_delimiter}{self.end_date.isoformat()}'
+        else:
+            self.name = name
         if self.start_date and self.end_date and len(self.menus) == 0:
             self.create_menus()
 
@@ -49,17 +54,17 @@ class menu:
     def readIn(self, file):
         pass
 
-    def startDate(self, start):
-        """set startdate and initialize menus if end date is present"""
-        self.start_date = datetime.date.fromisoformat(start)
-        if self.start_date and self.end_date and len(self.menus) == 0:
-            self.create_menus()
-
-    def endDate(self, end):
-        """set end date and initialize menus if start date is present"""
-        self.end_date = datetime.date.fromisoformat(end)
-        if self.start_date and self.end_date and len(self.menus) == 0:
-            self.create_menus()
+    # def startDate(self, start):
+    #     """set startdate and initialize menus if end date is present"""
+    #     self.start_date = datetime.date.fromisoformat(start)
+    #     if self.start_date and self.end_date and len(self.menus) == 0:
+    #         self.create_menus()
+    #
+    # def endDate(self, end):
+    #     """set end date and initialize menus if start date is present"""
+    #     self.end_date = datetime.date.fromisoformat(end)
+    #     if self.start_date and self.end_date and len(self.menus) == 0:
+    #         self.create_menus()
 
     def create_menus(self):
         """creates a day for each day between start and end dates"""
@@ -81,11 +86,19 @@ class menu:
         """returns a given day, if an int is given, it will return that many days
         after the start date. otherwise, it returns the date from the given string"""
         if isinstance(day, int):
-            day = self.start_date + timedelta(days=day)
-        return self.menus[day.isoformat()]
+            day = self.start_date + datetime.timedelta(days=day)
+        if isinstance(day, datetime.date):
+            day = day.isoformat()
+        return self.menus[day]
 
     def guts(self):
         return {"name": self.name,
                 "startDate": self.startDate,
                 "endDate": self.endDate,
                 "menus": self.menus}
+
+    def getID(self):
+        return self.name
+
+    def getName(self):
+        return self.name

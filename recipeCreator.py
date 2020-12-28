@@ -1,19 +1,21 @@
 import csv, json, yaml, sys, logging, re, copy
 import requests as rq
 from contextlib import suppress
+from data_container import *
 logger = logging.getLogger('Debug Log')
 
-class recipe:
+class recipe(data_container):
     dataFields = ['title string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\
       'rating integer', 'ingredients json', 'directions json', 'source string']
     ugly_fields = ['title', 'prep_time', 'cook_time', 'yield', 'category', 'rating', 'ingredients', 'directions', 'source']
     pretty_fields = ['Title', 'Prep Time', 'Cook Time', 'Total Time','Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source']
-    firstDigits = re.compile(r'\s*(\d+)(.*)')
+    firstDigits = re.compile(r'\s*([\d.]+)(.*)')
     id_delimiter = ' by: '
     def __init__(self, data=None, file=None, copyme=None):
         self.multiplied = 1.0
         if copyme:
-            self.edit(copy.deepcopy(copyme).guts())
+            self.copyfrom(copy.deepcopy(copyme))
+            self.multiplied = 1.0
         elif data:
             self.edit(data)
         elif file:
@@ -50,6 +52,22 @@ class recipe:
 
     def meta(self):
         return tuple(recipe.pretty_fields)
+
+    def copyfrom(self, clone):
+        self.title = clone.title
+        if len(self.title) <= 0:
+            print('Error creating recipe, creating default')
+            self.new()
+            return
+        self.prep_time = clone.prep_time
+        self.cook_time = clone.cook_time
+        self.total_time = clone.total_time
+        self.yieldAmnt = clone.yieldAmnt
+        self.category = clone.category
+        self.rating = clone.rating
+        self.ingredients = clone.ingredients
+        self.directions = clone.directions
+        self.source = clone.source
 
     def edit(self, data):
         """Function that builds the recipe object from DB entry.
@@ -119,13 +137,15 @@ class recipe:
     def multiplyBy(self, factor:float):
         self.multiplied = factor
         yieldAmnt = recipe.firstDigits.match(self.yieldAmnt)
-        newYield = int(yieldAmnt.group(1)) * factor
+        newYield = float(yieldAmnt.group(1)) * factor
+        # round to the nearest .25
+        newYield = round(newYield*4)/4
         self.yieldAmnt = f'{newYield}{yieldAmnt.group(2)}'
 
         new_ingredients = []
         for ing in self.ingredients:
             amnt = recipe.firstDigits.match(ing[2])
-            newAmnt = f'{int(amnt.group(1))*factor}{amnt.group(2)}'
+            newAmnt = f'{round((float(amnt.group(1))*factor)*4)/4}{amnt.group(2)}'
             new_ingredients.append((ing[0],ing[1],newAmnt))
         self.ingredients = new_ingredients
         return self
@@ -174,8 +194,11 @@ class recipe:
     def getID(self):
         """if source is present should return '{title} by: {source}' otherwise
         should return '{title}'"""
-        delimiter = self.delimiter if len(self.source) > 0 else ''
+        delimiter = recipe.id_delimiter if len(self.source) > 0 else ''
         return self.title + delimiter + self.source
+
+    def getName(self):
+        return self.title
 
     @staticmethod
     def topLevelSplit(line):

@@ -9,10 +9,11 @@ from apiCalls import *
 from KitchenModel import *
 from views.view import view
 from controllers.recipeTableController import *
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipeTable Log')
 
 class recipeTable(sg.Tab, view):
     def __init__(self, title, master, *args, tableKey='-RECIPE-TABLE-', **kwargs):
+        logger.debug(f'recipeTable.__init__ called with title={title}, args={args}, kwargs={kwargs}')
         self.model = KitchenModel.getInstance()
         self.master = master
         self.recTableDim = self.master.recTableDim
@@ -25,7 +26,8 @@ class recipeTable(sg.Tab, view):
              "features":self.features,
              "recTable":self.recTable,
              "tableData":self.tableData,
-             "recTableDim":self.recTableDim})
+             "recTableDim":self.recTableDim,
+             "searchbar":self.search})
         # self.controller = recipeTableController(self.tableKey, self.features, self.recTable, self.tableData, self.recTableDim)
 
     def refreshView(self, model, key):
@@ -62,6 +64,8 @@ class recipeTable(sg.Tab, view):
                                 tooltip="This is a table of your recipes, search options are above, and clicking on a recipe will open it in the editor")
         # col = sg.Column(layout = tab, scrollable=True)
         # self.master.expands['xy'].append(self.recTable)
+        self.search = searchBar.searchBar(key='RECIPE', api=self.model.get('RecipeAPI'))
+              # tooltip="Enter the recipe title you are looking for")
         layout = [
             [
               sg.T('Sort By'),
@@ -72,8 +76,7 @@ class recipeTable(sg.Tab, view):
                     tooltip="Click here for a blank new recipe")
             ],
             [
-              searchBar.searchBar(self.master,key='RECIPE',
-                    tooltip="Enter the recipe title you are looking for"),
+              self.search,
               ],
             [self.recTable]
         ]
