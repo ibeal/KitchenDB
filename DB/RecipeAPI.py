@@ -50,7 +50,7 @@ class RecipeAPI(AbstractAPI):
             source = fields[1] if len(fields) > 1 else ''
         logger.debug(f'checking for {name} by {source}')
         res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
-        return recipe(res[0])
+        return recipe(list(res)[0])
 
     def deleteRecipe(self, rec=None, name="", source=""):
         """Accepts either a name and source, or a recipe in the first slot"""

@@ -4,7 +4,13 @@ from recipeCreator import *
 from shoppingList import *
 
 class dailyMenu:
-    def __init__(self, date):
+    def __init__(self, date='', data=None):
+        if data:
+            self.edit(data)
+        else:
+            self.new(date)
+
+    def new(self, date):
         self.date = date
         # self.name = date
         # if name:
@@ -16,6 +22,19 @@ class dailyMenu:
             'dinner': [],
             'misc': []
         }
+
+    def edit(self, data):
+        if isinstance(data, dict):
+            self.date = data['date']
+            self.data = data['data']
+            self.newShoppingList()
+
+    def pack(self):
+        ret = {}
+        for k,v in self.data.items():
+            ret[k] = [rec.getID() for rec in v]
+        return {'date':self.date,
+                'data':ret}
 
     def add_category(self, group):
         if group in self.data.keys():
@@ -31,9 +50,9 @@ class dailyMenu:
         elif group.lower() in ['dinner']:
             self.data['dinner'].append(rec)
         elif group.lower() in ['misc']:
-            self.data['snacks'].append(rec)
+            self.data['misc'].append(rec)
         elif group.lower() in self.data.keys():
-            self.data[group].append(rec)
+            self.data[group.lower()].append(rec)
         else:
             logger.debug("group not supported")
             raise Exception(f"Unsupported group given {group}")

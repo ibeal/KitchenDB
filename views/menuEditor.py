@@ -39,7 +39,8 @@ class menuEditor(sg.Tab, view):
                  sg.In('', key="-MENU-NAME-", size=(20,1)),
                  sg.Button('Select Menu', key="-MENU-SELECT-"),
                  sg.Button('Shopping List', key="-MENU-SHOPPING-"),
-                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-")],
+                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-"),
+                 sg.Button('Save', key="-MENU-SAVE-")],
                 [sg.T('Menu for: '),
                  sg.Combo(values=[], default_value='', key="-MENU-DAY-", size=(15,1), enable_events=True)],
                 [sg.T('Breakfast')],
@@ -48,7 +49,7 @@ class menuEditor(sg.Tab, view):
                 [sg.Multiline(size=(50,8), key="-LUNCH-")],
                 [sg.T('Dinner')],
                 [sg.Multiline(size=(50,8), key="-DINNER-")],
-                [sg.T('Misc.')],
+                [sg.T('Other')],
                 [sg.Multiline(size=(50,8), key="-MISC-")],
         ]
         return layout
@@ -58,10 +59,18 @@ class menuEditor(sg.Tab, view):
         # firstDay = menu.getDay(0)
         # self.model.window["-MENU-NAME-"].update(value=menu.name)
         self.model.window["-MENU-DAY-"].update(value=day.date)
-        self.model.window["-BREAKFAST-"].update(value='\n'.join(day.get('breakfast')))
-        self.model.window["-LUNCH-"].update(value='\n'.join(day.get('lunch')))
-        self.model.window["-DINNER-"].update(value='\n'.join(day.get('dinner')))
-        self.model.window["-MISC-"].update(value='\n'.join(day.get('misc')))
+
+        breakfast = [rec.getID() for rec in day.get('breakfast')]
+        self.model.window["-BREAKFAST-"].update(value='\n'.join(breakfast))
+
+        lunch = [rec.getID() for rec in day.get('lunch')]
+        self.model.window["-LUNCH-"].update(value='\n'.join(lunch))
+
+        dinner = [rec.getID() for rec in day.get('dinner')]
+        self.model.window["-DINNER-"].update(value='\n'.join(dinner))
+
+        misc = [rec.getID() for rec in day.get('misc')]
+        self.model.window["-MISC-"].update(value='\n'.join(misc))
 
     def loadMenu(self, menu):
         keys = list(menu.menus.keys())

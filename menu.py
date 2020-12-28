@@ -31,19 +31,23 @@ class menu(data_container):
         if self.start_date and self.end_date and len(self.menus) == 0:
             self.create_menus()
 
+    def pack(self):
+        self.menus = {k:v.pack() for k,v in self.menus.items()}
+        return self
+
     def edit(self, data):
         if isinstance(data, list) or isinstance(data, tuple):
             self.name = data[0]
-            if len(self.title) <= 0:
+            if len(self.name) <= 0:
                 print('Error creating recipe, creating default')
                 self.new()
                 return
-            self.start_date = data[1]
-            self.end_date = data[2]
+            self.start_date = datetime.date.fromisoformat(data[1])
+            self.end_date = datetime.date.fromisoformat(data[2])
             self.menus = data[3]
         elif isinstance(data, dict):
-            self.menus = data['name']
-            if len(self.title) <= 0:
+            self.name = data['name']
+            if len(self.name) <= 0:
                 print('Error creating recipe, creating default')
                 self.new()
                 return
@@ -91,10 +95,15 @@ class menu(data_container):
             day = day.isoformat()
         return self.menus[day]
 
+    def setDay(self, day):
+        """takes a day, and sets the current day to the given day"""
+        # TODO: add error checking here
+        self.menus[day.date] = day
+
     def guts(self):
         return {"name": self.name,
-                "startDate": self.startDate,
-                "endDate": self.endDate,
+                "startDate": self.start_date,
+                "endDate": self.end_date,
                 "menus": self.menus}
 
     def getID(self):

@@ -19,6 +19,7 @@ class database:
         # self.createTable('menus', menu.dataFields)
         self.register_adapter(list, self.adapt_list_to_JSON)
         self.register_converter("json", self.convert_JSON_to_list)
+        self.register_adapter(dict, self.adapt_list_to_JSON)
 
     def __del__(self):
         self.conn.close()

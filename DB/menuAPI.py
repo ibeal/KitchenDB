@@ -2,9 +2,11 @@ from recipeCreator import *
 from DB.AbstractAPI import *
 from DB.database import *
 from dailyMenu import *
+import menu as Menu
 
 class MenuAPI(AbstractAPI):
-    def __init__(self, db):
+    def __init__(self, db, recipeAPI):
+        self.recAPI = recipeAPI
         self.db = db
         self.db.createTable(name='menus', fields=menu.dataFields)
 
@@ -20,13 +22,27 @@ class MenuAPI(AbstractAPI):
             name = menu.name
         logger.debug(f'checking for menu: {name}')
         res = self.db.cur.execute(f"SELECT * FROM menus WHERE name='{name}'")
-        return menu(res[0])
+        ret = Menu.menu(list(res)[0])
+
+        # TODO: refactor this code to its own function
+        # This code unpacks the packed menu object
+        # iterate over daily menus...
+        for k,v in ret.menus.items():
+            # iterate over categories...
+            for key,val in v['data'].items():
+                # iterate over recipes in categories...
+                # and use the recipeID to lookup the recipe in the database
+                # TODO: add error checking for missing recipe
+                v['data'][key] = [self.recAPI.recipeLookup(recID=rec) for rec in val]
+            # then update the menu with the new dailyMenu object
+            ret.setDay(dailyMenu(data=v))
+        return ret
 
     def deleteMenu(self, menu=None, name=""):
         if menu:
             name = menu.name
         logger.debug(f'deleting menu: {name}')
-        res = self.db.cur.execute(f"DELETE FROM recipes WHERE name='{name}'")
+        res = self.db.cur.execute(f"DELETE FROM menus WHERE name='{name}'")
         self.db.conn.commit()
 
     def search(self, query, sortby=None):
@@ -43,14 +59,16 @@ class MenuAPI(AbstractAPI):
         else:
             res = self.db.cur.execute(command, ('%'+query+'%',))
         # self.unpack(res)
-        return [menu(i) for i in res]
+        # TODO: add unpacking logic here
+        return [Menu.menu(i) for i in res]
 
     def saveMenu(self, menu, table = 'menus'):
         # self.db.createTable(table)
         if len(menu.name) <= 0:
                 print('Error saving recipe to db, skipping...')
                 return
-        data = rec.guts()
+        menu = menu.pack()
+        data = menu.guts()
         # logger.debug('executing: ' + query)
         self.db.cur.execute(f"insert into {table} values (?,?,?,?)", tuple(data.values()))
         self.db.conn.commit()

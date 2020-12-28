@@ -6,10 +6,11 @@ from KitchenModel import *
 logger = logging.getLogger('searchBar Log')
 
 class searchBar(sg.Column):
-    def __init__(self, key, api=None, interactive=True, length=40, searchbutton=True, **kwargs):
+    def __init__(self, key, api=None, interactive=True, length=40, searchbutton=True, getID=False, **kwargs):
         logger.debug(f'searchBar.__init__ called with key={key}, api={api}, length={length}, kwargs={kwargs}')
         if interactive == True and api == None:
             raise Exception('interactive search bar created with no api')
+        self.getID = getID
         self.searchbutton = searchbutton
         self.interactive = interactive
         self.api = api
@@ -38,7 +39,11 @@ class searchBar(sg.Column):
         if not self.interactive:
             return False
         if event == self.sbox_key:
-            self.options = [[opt.getName()] for opt in self.api.search(self.sbox.get())]
+            
+            if self.getID:
+                self.options = [[opt.getID()] for opt in self.api.search(self.sbox.get())]
+            else:
+                self.options = [[opt.getName()] for opt in self.api.search(self.sbox.get())]
             self.stable.update(visible=True, values=self.options)
             return True
         elif event == self.stable_key:

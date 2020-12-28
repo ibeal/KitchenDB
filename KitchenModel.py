@@ -36,7 +36,7 @@ class KitchenModel:
             self.data["state"] = {"lastTableAction": "default"}
             self.data["db"] = database()
             self.data["RecipeAPI"] = RecipeAPI(self.data["db"])
-            self.data["MenuAPI"] = MenuAPI(self.data['db'])
+            self.data["MenuAPI"] = MenuAPI(self.data['db'], recipeAPI=self.data["RecipeAPI"])
             self.data["api"] = apiCalls()
             self.data["prefs"] = {
                 'recipeFolder': os.getcwd() + '/recipes/',
