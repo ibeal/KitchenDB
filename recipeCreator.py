@@ -9,6 +9,7 @@ class recipe:
     ugly_fields = ['title', 'prep_time', 'cook_time', 'yield', 'category', 'rating', 'ingredients', 'directions', 'source']
     pretty_fields = ['Title', 'Prep Time', 'Cook Time', 'Total Time','Yield', 'Category', 'Rating', 'Ingredients', 'Directions', 'Source']
     firstDigits = re.compile(r'\s*(\d+)(.*)')
+    id_delimiter = ' by: '
     def __init__(self, data=None, file=None, copyme=None):
         self.multiplied = 1.0
         if copyme:
@@ -169,6 +170,12 @@ class recipe:
             f.truncate(0) # clear file
             f.write(self.__str__())
             logger.debug(f'Output to Yaml completed. File: {filename}')
+
+    def getID(self):
+        """if source is present should return '{title} by: {source}' otherwise
+        should return '{title}'"""
+        delimiter = self.delimiter if len(self.source) > 0 else ''
+        return self.title + delimiter + self.source
 
     @staticmethod
     def topLevelSplit(line):

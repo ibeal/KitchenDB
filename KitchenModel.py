@@ -1,5 +1,6 @@
 from DB.database import *
 from DB.RecipeAPI import *
+from DB.MenuAPI import *
 from apiCalls import *
 from views.view import view
 import os
@@ -27,12 +28,14 @@ class KitchenModel:
             self.data["controllers"] = {}
             self.data["tabData"] = {}
             self.data["activeRecipe"] = None
+            self.data["activeMenu"] = None
             self.data["recipe_table"] = None
             self.data["views"] = {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None}
             self.data["active_view"] = '-TABLE-'
             self.data["state"] = {"lastTableAction": "default"}
             self.data["db"] = database()
             self.data["RecipeAPI"] = RecipeAPI(self.data["db"])
+            self.data["MenuAPI"] = MenuAPI(self.data['db'])
             self.data["api"] = apiCalls()
             self.data["prefs"] = {
                 'recipeFolder': os.getcwd() + '/recipes/',

@@ -26,20 +26,28 @@ class RecipeAPI(AbstractAPI):
         res = self.db.cur.execute(f"SELECT * FROM recipes LIMIT {first}, {count}")
         return [recipe(i) for i in res]
 
-    def recipeExists(self, rec=None, name="", source=""):
+    def recipeExists(self, rec=None, name="", source="", recID=None):
         """Accepts either a name and source, or a recipe in the first slot"""
         if rec:
             name = rec.title
             source = rec.source
+        elif recID:
+            fields = recID.split(recipe.id_delimiter)
+            name = fields[0]
+            source = fields[1] if len(fields) > 1 else ''
         logger.debug(f'checking for {name} by {source}')
         res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
         return len(list(res)) > 0
 
-    def recipeLookup(self, name='', source='', rec=None):
+    def recipeLookup(self, name='', source='', rec=None, recID=None):
         """Accepts either a name and source, or a recipe in the third slot"""
         if rec:
             name = rec.title
             source = rec.source
+        elif recID:
+            fields = recID.split(recipe.id_delimiter)
+            name = fields[0]
+            source = fields[1] if len(fields) > 1 else ''
         logger.debug(f'checking for {name} by {source}')
         res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
         return recipe(res[0])

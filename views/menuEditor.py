@@ -22,24 +22,46 @@ class menuEditor(sg.Tab, view):
             {})
 
     def refreshView(self, model, key):
-        pass
+        if key == 'activeMenu':
+            if self.model.get('activeMenu') == None:
+                self.clearFields()
+            else:
+                self.fillFields(self.model.get('activeMenu'))
 
     def layout_init(self):
         layout = [
                 [sg.T('Menu'),
-                 sg.In('12/03/21-12/17/21'),
-                 sg.Button('Select Menu'),
-                 sg.Button('Shopping List'),
-                 sg.Button('Add Recipe')],
+                 sg.In('', key="-MENU-NAME-", size=(20,1)),
+                 sg.Button('Select Menu', key="-MENU-SELECT-"),
+                 sg.Button('Shopping List', key="-MENU-SHOPPING-"),
+                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-")],
                 [sg.T('Menu for: '),
-                 sg.Combo(values=['12/03/21'], default_value='12/03/21')],
+                 sg.Combo(values=[], default_value='', key="-MENU-DAY-", size=(15,1))],
                 [sg.T('Breakfast')],
-                [sg.Multiline(size=(50,8))],
+                [sg.Multiline(size=(50,8), key="-BREAKFAST-")],
                 [sg.T('Lunch')],
-                [sg.Multiline(size=(50,8))],
+                [sg.Multiline(size=(50,8), key="-LUNCH-")],
                 [sg.T('Dinner')],
-                [sg.Multiline(size=(50,8))],
+                [sg.Multiline(size=(50,8), key="-DINNER-")],
                 [sg.T('Misc.')],
-                [sg.Multiline(size=(50,8))],
+                [sg.Multiline(size=(50,8), key="-MISC-")],
         ]
         return layout
+
+    def fillFields(self, menu):
+        keys = menu.menus.keys()
+        firstDay = menu.getDay(0)
+        self.model.window["-MENU-NAME-"].update(value=menu.name)
+        self.model.window["-MENU-DAY-"].update(values=keys, value=keys[0])
+        self.model.window["-BREAKFAST-"].update(value='\n'.join(firstDay.get('breakfast')))
+        self.model.window["-LUNCH-"].update(value='\n'.join(firstDay.get('lunch')))
+        self.model.window["-DINNER-"].update(value='\n'.join(firstDay.get('dinner')))
+        self.model.window["-MISC-"].update(value='\n'.join(firstDay.get('misc')))
+
+    def clearFields(self):
+        self.model.window["-MENU-NAME-"].update(value='')
+        self.model.window["-MENU-DAY-"].update(values=[], value='')
+        self.model.window["-BREAKFAST-"].update(value='')
+        self.model.window["-LUNCH-"].update(value='')
+        self.model.window["-DINNER-"].update(value='')
+        self.model.window["-MISC-"].update(value='')

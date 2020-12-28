@@ -95,7 +95,7 @@ class recipeEditor(sg.Tab, view):
                 [sg.T('Directions')],
                 [dir],
                 [sg.T('Ingredients')],
-                searchBar.searchBar(self.master, key='INGREDIENT'),
+                [searchBar.searchBar(self.master, key='INGREDIENT')],
                 [self.ingTable],
                 [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
                 [ing]
@@ -131,7 +131,7 @@ class recipeEditor(sg.Tab, view):
             # clear the field
             # self.recFields[field].delete(SPOT, tk.END)
             # fill the field
-            self.master.window[self.recFields[field]].update(value=value)
+            self.model.window[self.recFields[field]].update(value=value)
             # self.master.window.fill({self.recFields[field]: value})
 
     def clearFields(self):

@@ -67,13 +67,14 @@ class recipeTable(sg.Tab, view):
               sg.T('Sort By'),
               sg.Combo(default_value='None', values=['None', 'Title', 'Category', 'Rating'], key='-TABLE-SORT-',
                     tooltip="Choose which field to sort the next search by",
-                    disabled=True)
+                    disabled=True),
+              sg.Button('Add New Recipe', key='-ADDNEW-',
+                    tooltip="Click here for a blank new recipe")
             ],
             [
-              *searchBar.searchBar(self.master,key='RECIPE',
+              searchBar.searchBar(self.master,key='RECIPE',
                     tooltip="Enter the recipe title you are looking for"),
-              sg.Button('Add New Recipe', key='-ADDNEW-',
-                    tooltip="Click here for a blank new recipe")],
+              ],
             [self.recTable]
         ]
         # return sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')

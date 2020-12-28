@@ -14,7 +14,7 @@ class dailyMenu:
             'breakfast': [],
             'lunch': [],
             'dinner': [],
-            'snacks': []
+            'misc': []
         }
 
     def add_category(self, group):
@@ -30,7 +30,7 @@ class dailyMenu:
             self.data['lunch'].append(rec)
         elif group.lower() in ['dinner']:
             self.data['dinner'].append(rec)
-        elif group.lower() in ['snacks']:
+        elif group.lower() in ['misc']:
             self.data['snacks'].append(rec)
         elif group.lower() in self.data.keys():
             self.data[group].append(rec)
@@ -45,3 +45,6 @@ class dailyMenu:
 
     def updateShoppingList(self, data):
         self.shopping.add_ingredients(data)
+
+    def get(self, key):
+        return self.data[key]
