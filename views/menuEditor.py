@@ -33,24 +33,32 @@ class menuEditor(sg.Tab, view):
             else:
                 self.fillFields(self.model.get('activeMenuDay'))
 
+
     def layout_init(self):
+        def menu_table(key, heading, width=50, rows=7):
+            click_menu = [
+            ['menu'],
+            [f'&View::menu//{key}',
+            f'&Edit::menu//{key}',
+            f'&Delete::menu//{key}']
+            ]
+            return sg.Table(values=[['']], key=key, headings=[heading], num_rows=rows,
+            enable_events=True, auto_size_columns=False, col_widths=[width],
+            hide_vertical_scroll=True, right_click_menu=click_menu)
         layout = [
                 [sg.T('Menu'),
                  sg.In('', key="-MENU-NAME-", size=(20,1)),
                  sg.Button('Select Menu', key="-MENU-SELECT-"),
+                 sg.Button('Delete Menu', key="-MENU-DELETE-"),
                  sg.Button('Shopping List', key="-MENU-SHOPPING-"),
                  sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-"),
                  sg.Button('Save', key="-MENU-SAVE-")],
                 [sg.T('Menu for: '),
                  sg.Combo(values=[], default_value='', key="-MENU-DAY-", size=(15,1), enable_events=True)],
-                [sg.T('Breakfast')],
-                [sg.Multiline(size=(50,8), key="-BREAKFAST-")],
-                [sg.T('Lunch')],
-                [sg.Multiline(size=(50,8), key="-LUNCH-")],
-                [sg.T('Dinner')],
-                [sg.Multiline(size=(50,8), key="-DINNER-")],
-                [sg.T('Other')],
-                [sg.Multiline(size=(50,8), key="-MISC-")],
+                [menu_table('BREAKFAST', 'Breakfast')],
+                [menu_table("LUNCH", 'Lunch')],
+                [menu_table("DINNER", 'Dinner')],
+                [menu_table("OTHER", 'Other')],
         ]
         return layout
 
@@ -60,17 +68,17 @@ class menuEditor(sg.Tab, view):
         # self.model.window["-MENU-NAME-"].update(value=menu.name)
         self.model.window["-MENU-DAY-"].update(value=day.date)
 
-        breakfast = [rec.getID() for rec in day.get('breakfast')]
-        self.model.window["-BREAKFAST-"].update(value='\n'.join(breakfast))
+        breakfast = [[rec.getID()] for rec in day.get('breakfast')]
+        self.model.window["BREAKFAST"].update(values=breakfast)
 
-        lunch = [rec.getID() for rec in day.get('lunch')]
-        self.model.window["-LUNCH-"].update(value='\n'.join(lunch))
+        lunch = [[rec.getID()] for rec in day.get('lunch')]
+        self.model.window["LUNCH"].update(values=lunch)
 
-        dinner = [rec.getID() for rec in day.get('dinner')]
-        self.model.window["-DINNER-"].update(value='\n'.join(dinner))
+        dinner = [[rec.getID()] for rec in day.get('dinner')]
+        self.model.window["DINNER"].update(values=dinner)
 
-        misc = [rec.getID() for rec in day.get('misc')]
-        self.model.window["-MISC-"].update(value='\n'.join(misc))
+        other = [[rec.getID()] for rec in day.get('other')]
+        self.model.window["OTHER"].update(values=other)
 
     def loadMenu(self, menu):
         keys = list(menu.menus.keys())
@@ -82,13 +90,13 @@ class menuEditor(sg.Tab, view):
     def clearMenu(self):
         self.model.window["-MENU-NAME-"].update(value='')
         self.model.window["-MENU-DAY-"].update(values=[], value='')
-        self.model.window["-BREAKFAST-"].update(value='')
-        self.model.window["-LUNCH-"].update(value='')
-        self.model.window["-DINNER-"].update(value='')
-        self.model.window["-MISC-"].update(value='')
+        self.model.window["BREAKFAST"].update(values=[['']])
+        self.model.window["LUNCH"].update(values=[['']])
+        self.model.window["DINNER"].update(values=[['']])
+        self.model.window["OTHER"].update(values=[['']])
 
     def clearFields(self):
-        self.model.window["-BREAKFAST-"].update(value='')
-        self.model.window["-LUNCH-"].update(value='')
-        self.model.window["-DINNER-"].update(value='')
-        self.model.window["-MISC-"].update(value='')
+        self.model.window["BREAKFAST"].update(values=[['']])
+        self.model.window["LUNCH"].update(values=[['']])
+        self.model.window["DINNER"].update(values=[['']])
+        self.model.window["OTHER"].update(values=[['']])

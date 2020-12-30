@@ -24,23 +24,107 @@ class menuEditorController(controller):
             self.select_menu_modal()
             return True
         elif event == "-MENU-SHOPPING-":
+            self.model.get('activeMenu').newShoppingList()
+            self.shopping_modal()
+            return True
+        elif event == "-MENU-DELETE-":
+            if self.model.get('MenuAPI').menuExists(self.model.get('activeMenu')):
+                self.model.get('MenuAPI').deleteMenu(self.model.get('activeMenu'))
+            # self.delete_menu()
+            self.model.set('activeMenu', value=None)
             return True
         elif event == "-MENU-ADD-RECIPE-":
             if self.model.get('activeMenu') == None or self.model.get('activeMenuDay') == None:
                 sg.PopupError('No Menu Selected!', title='Error')
                 return True
             self.add_recipe()
+            self.save_menu(self.model.get('activeMenu'))
             return True
         elif event == "-MENU-DAY-":
             self.model.set('activeMenuDay', value=self.model.get('activeMenu').getDay(values['-MENU-DAY-']))
             return True
         elif event == "-MENU-SAVE-":
-            self.model.get('MenuAPI').saveMenu(self.model.get('activeMenu'))
+            self.save_menu(self.model.get('activeMenu'), update_name = values['-MENU-NAME-'])
+            return True
+        elif event.find('Delete::menu//') != -1:
+            group = event.split('//')[1]
+            try:
+                recipe = self.find_recipe_from_table(event, values)
+            except ValueError:
+                sg.PopupError('No Recipe Selected!')
+                return True
+            date = self.model.get('activeMenuDay')
+            self.model.get('activeMenu').removeRecipe(recipe, date, group)
+            self.model.notifyOberservers('activeMenuDay')
+            return True
+        elif event.find('Edit::menu//') != -1:
+            try:
+                recipe = self.find_recipe_from_table(event, values)
+            except ValueError:
+                sg.PopupError('No Recipe Selected!')
+                return True
+            self.model.set('activeRecipe', value=recipe)
+            self.model.set('active_view', value='-EDITOR-')
+            return True
+        elif event.find('View::menu//') != -1:
+            try:
+                recipe = self.find_recipe_from_table(event, values)
+            except ValueError:
+                sg.PopupError('No Recipe Selected!')
+                return True
+            self.model.set('activeRecipe', value=recipe)
+            self.model.set('active_view', value='-VIEWER-')
             return True
         return False
 
-    def save_menu(self):
-        pass
+    def find_recipe_from_table(self, event, values):
+        tableKey = event.split('//')[1]
+        day_menu = self.model.get('activeMenuDay')
+        if len(values[tableKey]) <= 0:
+            raise ValueError('No Recipe Selected')
+        recipe_index = values[tableKey][0]
+        recipe = day_menu.get(tableKey.lower())[recipe_index]
+        return recipe
+
+    def save_menu(self, menu, update_name=None):
+        if menu == None:
+            logger.debug('A NoneType menu was given to save_menu, aborting...')
+            return
+
+        if self.model.get('MenuAPI').menuExists(menu):
+            self.model.get('MenuAPI').deleteMenu(menu)
+            if update_name != None and update_name != menu.getName():
+                menu.name = update_name
+            try:
+                self.model.get('MenuAPI').saveMenu(menu)
+            except:
+                sg.PopupError('Error occured during saving', title='Error')
+                logger.debug("Unexpected error:", sys.exc_info()[0])
+                return
+        else:
+            try:
+                self.model.get('MenuAPI').saveMenu(menu)
+            except:
+                sg.PopupError('Error occured during saving', title='Error')
+                logger.debug("Unexpected error:", sys.exc_info()[0])
+                return
+        self.model.set('activeMenu', value=menu)
+
+    def shopping_modal(self):
+        layout = [
+            [sg.Multiline(self.model.get('activeMenu').shopping.__str__(), size=(50,30))],
+            [sg.Button('Close')]
+        ]
+
+        window = sg.Window('Shopping List', layout, finalize=True)
+
+        while True:
+            event, values = window.read()
+
+            if event in (sg.WIN_CLOSED, "Close"):
+                break
+
+        window.close()
 
     def add_recipe(self):
         search = searchBar.searchBar(key='-MODAL-SEARCH-', api=self.model.get('RecipeAPI'), length=40, searchbutton=False, getID=True)
@@ -54,7 +138,8 @@ class menuEditorController(controller):
              sg.Combo(values=[f'{i}' for i in np.arange(.5,5,.5)], key='-MODAL-MULTBY-',
                      default_value='1')],
             [sg.T('Under Section: '),
-             sg.Combo(values=list(self.model.get('activeMenuDay').data.keys()), key='-MODAL-GROUP-')],
+             sg.Combo(values=list(self.model.get('activeMenuDay').data.keys()),
+                      key='-MODAL-GROUP-', default_value='other')],
             [sg.Button('Add', key="-MODAL-ADD-"),
              sg.Button('Cancel', key="-MODAL-CANCEL-")]
         ]
@@ -75,7 +160,12 @@ class menuEditorController(controller):
                 date = self.model.get('activeMenuDay').date
                 group = values['-MODAL-GROUP-']
                 mult = values['-MODAL-MULTBY-']
-                self.model.get('activeMenu').addRecipe(rec=rec*mult, date=date, group=group)
+                try:
+                    self.model.get('activeMenu').addRecipe(rec=rec*mult, date=date, group=group)
+                except:
+                    logger.debug('Error occured during addRecipe function')
+                    sg.PopupError('An error has occured. Recipe not added.')
+                    break
                 self.model.notifyOberservers('activeMenuDay')
                 break
 
@@ -149,6 +239,7 @@ class menuEditorController(controller):
                 name = window['-MODAL-NAME-'].get()
                 new_menu = Menu.menu(start=start, end=end, name=name)
                 self.model.set('activeMenu', value=new_menu)
+                self.model.set('activeMenuDay', value=new_menu.getDay(0))
                 break
             if not set_name:
                 start = window['-MODAL-START-'].get()

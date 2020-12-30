@@ -1,5 +1,5 @@
 from dailyMenu import *
-import datetime
+import datetime, copy
 import pandas as pd
 from shoppingList import *
 from data_container import *
@@ -32,10 +32,12 @@ class menu(data_container):
             self.create_menus()
 
     def pack(self):
-        self.menus = {k:v.pack() for k,v in self.menus.items()}
-        return self
+        dup = copy.deepcopy(self)
+        dup.menus = {k:v.pack() for k,v in self.menus.items()}
+        return dup
 
     def edit(self, data):
+        self.shopping = shoppingList()
         if isinstance(data, list) or isinstance(data, tuple):
             self.name = data[0]
             if len(self.name) <= 0:
@@ -79,12 +81,26 @@ class menu(data_container):
 
     def addRecipe(self, rec, date, group):
         """adds a recipe to the specified day's group"""
+        if isinstance(date, dailyMenu):
+            date = date.date
         self.menus[date].add(group, rec)
+        self.updateShoppingList(rec)
 
-    def updateShoppingList(self, data):
+    def removeRecipe(self, rec, date, group):
+        if isinstance(date, dailyMenu):
+            date = date.date
+        self.menus[date].remove(group, rec)
+        self.updateShoppingList(rec, remove=True)
+
+    def newShoppingList(self):
+        self.shopping = shoppingList()
+        for day in self.menus.values():
+            self.updateShoppingList(day.shopping)
+
+    def updateShoppingList(self, data, remove=False):
         """add the data to the shopping list, used to keep the shopping list up
         to date"""
-        self.shopping.add(data)
+        self.shopping.add_ingredients(data) if not remove else self.shopping.remove_ingredients(data)
 
     def getDay(self, day):
         """returns a given day, if an int is given, it will return that many days

@@ -20,7 +20,7 @@ class dailyMenu:
             'breakfast': [],
             'lunch': [],
             'dinner': [],
-            'misc': []
+            'other': []
         }
 
     def edit(self, data):
@@ -49,8 +49,8 @@ class dailyMenu:
             self.data['lunch'].append(rec)
         elif group.lower() in ['dinner']:
             self.data['dinner'].append(rec)
-        elif group.lower() in ['misc']:
-            self.data['misc'].append(rec)
+        elif group.lower() in ['misc', 'other']:
+            self.data['other'].append(rec)
         elif group.lower() in self.data.keys():
             self.data[group.lower()].append(rec)
         else:
@@ -58,12 +58,28 @@ class dailyMenu:
             raise Exception(f"Unsupported group given {group}")
         self.updateShoppingList(rec)
 
+    def remove(self, group, rec):
+        if group.lower() in ['breakfast']:
+            self.data['breakfast'].remove(rec)
+        elif group.lower() in ['lunch']:
+            self.data['lunch'].remove(rec)
+        elif group.lower() in ['dinner']:
+            self.data['dinner'].remove(rec)
+        elif group.lower() in ['misc', 'other']:
+            self.data['other'].remove(rec)
+        elif group.lower() in self.data.keys():
+            self.data[group.lower()].remove(rec)
+        else:
+            logger.debug(f"group not supported")
+            raise Exception(f"Unsupported group given '{group}'")
+        self.updateShoppingList(rec, remove=True)
+
     def newShoppingList(self):
         self.shopping = shoppingList()
         self.shopping.add_ingredients(*self.data.values())
 
-    def updateShoppingList(self, data):
-        self.shopping.add_ingredients(data)
+    def updateShoppingList(self, data, remove=False):
+        self.shopping.add_ingredients(data) if not remove else self.shopping.remove_ingredients(data)
 
     def get(self, key):
         return self.data[key]

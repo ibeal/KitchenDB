@@ -70,7 +70,8 @@ class KitchenModel:
         if len(args) <= 0:
             raise Exception("Tried to set value in model, but no key given")
         elif not value:
-            raise Exception("No Value given for set!")
+            logger.debug('None value given to set!')
+            # raise Exception("No Value given for set!")
         # base case: only one arg left, set or merge the value
         elif len(args) == 1:
             if merge and isinstance(value, dict):

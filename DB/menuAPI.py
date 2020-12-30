@@ -11,7 +11,7 @@ class MenuAPI(AbstractAPI):
         self.db.createTable(name='menus', fields=menu.dataFields)
 
     def menuExists(self, menu=None, name=""):
-        if rec:
+        if menu:
             name = menu.name
         logger.debug(f'checking for menu: {name}')
         res = self.db.cur.execute(f"SELECT * FROM menus WHERE name='{name}'")

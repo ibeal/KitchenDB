@@ -109,7 +109,7 @@ class MainController:
             if event in (sg.WIN_CLOSED, 'Close'):
                 break
             elif event == '-LIST-':
-                # logger.debug(f'list value is {values["-LIST-"]}')
+                logger.debug(f'list value is {values["-LIST-"]}')
                 self.model.get('prefs')['theme'] = values['-LIST-']
                 sg.theme(self.model.get('prefs')['theme'])
             elif event == 'Apply':
