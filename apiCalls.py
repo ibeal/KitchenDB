@@ -1,7 +1,7 @@
 import requests as rq
 import logging
 global logger
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('apiCalls.py')
 
 class apiCalls():
     def __init__(self,

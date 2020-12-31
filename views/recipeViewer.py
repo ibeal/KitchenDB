@@ -7,7 +7,7 @@ from recipeCreator import *
 from KitchenModel import *
 from views.view import view
 from controllers.recipeViewerController import *
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipeViewer log')
 
 class recipeViewer(sg.Tab, view):
     def __init__(self, title, master, *args, **kwargs):

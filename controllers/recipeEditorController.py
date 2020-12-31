@@ -11,7 +11,7 @@ from controllers.controller import controller
 logger = logging.getLogger('recipeEditorController Log')
 
 class recipeEditorController(controller):
-    mixed_number = re.compile(r'\s*(\d+)\s+(\d[\\\/]\d)(.*)')
+    mixed_number = re.compile(r'\s*(\d*)\s*(\d[\/]\d)(.*)')
     def __init__(self):
         self.model = KitchenModel.getInstance()
 
@@ -41,7 +41,8 @@ class recipeEditorController(controller):
             self.model.set('active_view', value='-TABLE-')
             return True
         elif event == '-CLEAR-RECIPE-':
-            self.clearFields()
+            # self.clearFields()
+            print('clear recipe called')
             self.model.set('activeRecipe', value=None)
             return True
         elif event == '-INGREDIENT-SBUTTON-':
@@ -50,9 +51,15 @@ class recipeEditorController(controller):
         elif event == '-ADD-INGREDIENT-':
             # print(values)
             amount = values['-AMOUNT-']
-            if '/' in amount or '\\' in amount:
+            if '/' in amount:
                 matcher = recipeEditorController.mixed_number.match(amount)
-                amount = f'{float(matcher.group(1)) + eval(matcher.group(2))}{matcher.group(3)}'
+                whole = float(matcher.group(1)) if len(matcher.group(1)) > 0 else 0
+                amount = f'{whole + eval(matcher.group(2))}{matcher.group(3)}'
+            try:
+                float(amount.split(' ')[0])
+            except ValueError:
+                sg.PopupError("amount given in incorrect form!")
+                return True
             self.addIng(values[self.ingTableKey][0], amount)
             return True
         return False

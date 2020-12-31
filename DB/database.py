@@ -2,7 +2,7 @@ from recipeCreator import *
 from menu import *
 import sqlite3 as sql
 import logging
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('database log')
 
 class database:
     APOSREPLACE = ';:'

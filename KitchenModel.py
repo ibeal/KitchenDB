@@ -3,7 +3,9 @@ from DB.RecipeAPI import *
 from DB.MenuAPI import *
 from apiCalls import *
 from views.view import view
-import os
+import os, logging
+logger = logging.getLogger('KitchenModel Log')
+
 
 class KitchenModel:
     __instance = None
@@ -69,11 +71,11 @@ class KitchenModel:
         overwrite the old one"""
         if len(args) <= 0:
             raise Exception("Tried to set value in model, but no key given")
-        elif not value:
+        if not value:
             logger.debug('None value given to set!')
             # raise Exception("No Value given for set!")
         # base case: only one arg left, set or merge the value
-        elif len(args) == 1:
+        if len(args) == 1:
             if merge and isinstance(value, dict):
                 self.data[args[0]] = {**self.data[args[0]], **value}
             else:

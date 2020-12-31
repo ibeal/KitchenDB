@@ -6,7 +6,7 @@ import PySimpleGUI as sg
 from recipeCreator import *
 from KitchenModel import *
 from controllers.controller import *
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipeViewerController log')
 
 class recipeViewerController(controller):
     def __init__(self):

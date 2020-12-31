@@ -2,7 +2,7 @@ import csv, json, yaml, sys, logging, re, copy
 import requests as rq
 from contextlib import suppress
 from data_container import *
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipe log')
 
 class recipe(data_container):
     dataFields = ['title string', 'prep_time integer', 'cook_time integer', 'yield string', 'category string',\

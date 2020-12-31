@@ -9,7 +9,7 @@ from apiCalls import *
 from KitchenModel import *
 from views.view import view
 from controllers.recipeEditorController import *
-logger = logging.getLogger('Debug Log')
+logger = logging.getLogger('recipeEditor log')
 
 class recipeEditor(sg.Tab, view):
     mixed_number = re.compile(r'\s*([\d\\\/\s]+)(.*)')
@@ -37,7 +37,7 @@ class recipeEditor(sg.Tab, view):
 
     def refreshView(self, model, key):
         if key == "activeRecipe":
-            if self.model.get('activeRecipe') == None:
+            if model.get('activeRecipe') == None:
                 self.clearFields()
             else:
                 self.fillFields(self.model.get('activeRecipe'))
@@ -142,7 +142,7 @@ class recipeEditor(sg.Tab, view):
             if field == "Total Time":
                 continue
             # clear the field
-            self.master.window[self.recFields[field]].update(value='')
+            self.model.window[self.recFields[field]].update(value='')
 
     def recipe_modal(self, rec):
         sg.popup(rec.__str__());
