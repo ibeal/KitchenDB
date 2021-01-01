@@ -76,11 +76,11 @@ class recipeEditor(sg.Tab, view):
                                 key=self.ingTableKey)
         self.master.expands['x'].append(self.ingTable)
 
-        dir = sg.Multiline(key='-Directions-BOX-',size=(50,10))
+        dir = sg.Multiline(key='-Directions-BOX-', size=(50,10))
         self.master.expands['xy'].append(dir)
         # self.master.recFields['Directions'] = dir
 
-        ing = sg.Multiline(key='-Ingredients-BOX-',size=(50,10))
+        ing = sg.Multiline(key='-Ingredients-BOX-', size=(50,10))
         self.master.expands['xy'].append(ing)
         # self.master.recFields['Ingredients'] = ing
 

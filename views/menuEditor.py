@@ -49,10 +49,10 @@ class menuEditor(sg.Tab, view):
                 [sg.T('Menu'),
                  sg.In('', key="-MENU-NAME-", size=(20,1)),
                  sg.Button('Select Menu', key="-MENU-SELECT-"),
-                 sg.Button('Delete Menu', key="-MENU-DELETE-"),
-                 sg.Button('Shopping List', key="-MENU-SHOPPING-"),
-                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-"),
-                 sg.Button('Save', key="-MENU-SAVE-")],
+                 sg.Button('Delete Menu', key="-MENU-DELETE-", disabled=True),
+                 sg.Button('Shopping List', key="-MENU-SHOPPING-", disabled=True),
+                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-", disabled=True),
+                 sg.Button('Save', key="-MENU-SAVE-", disabled=True)],
                 [sg.T('Menu for: '),
                  sg.Combo(values=[], default_value='', key="-MENU-DAY-", size=(15,1), enable_events=True)],
                 [menu_table('BREAKFAST', 'Breakfast')],
@@ -63,6 +63,10 @@ class menuEditor(sg.Tab, view):
         return layout
 
     def fillFields(self, day):
+        self.model.window['-MENU-SAVE-'].update(disabled=False)
+        self.model.window['-MENU-DELETE-'].update(disabled=False)
+        self.model.window['-MENU-SHOPPING-'].update(disabled=False)
+        self.model.window['-MENU-ADD-RECIPE-'].update(disabled=False)
         # keys = list(menu.menus.keys())
         # firstDay = menu.getDay(0)
         # self.model.window["-MENU-NAME-"].update(value=menu.name)
@@ -88,6 +92,10 @@ class menuEditor(sg.Tab, view):
         # self.fillFields(firstDay)
 
     def clearMenu(self):
+        self.model.window['-MENU-SAVE-'].update(disabled=True)
+        self.model.window['-MENU-DELETE-'].update(disabled=True)
+        self.model.window['-MENU-SHOPPING-'].update(disabled=True)
+        self.model.window['-MENU-ADD-RECIPE-'].update(disabled=True)
         self.model.window["-MENU-NAME-"].update(value='')
         self.model.window["-MENU-DAY-"].update(values=[], value='')
         self.model.window["BREAKFAST"].update(values=[['']])
