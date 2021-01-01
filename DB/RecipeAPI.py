@@ -1,4 +1,4 @@
-from recipeCreator import *
+from containers.recipe import *
 from DB.AbstractAPI import *
 from DB.database import *
 import json
@@ -36,7 +36,11 @@ class RecipeAPI(AbstractAPI):
             name = fields[0]
             source = fields[1] if len(fields) > 1 else ''
         logger.debug(f'checking for {name} by {source}')
-        res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
+        # if None is passed, then perform a lookup by title only
+        if source == None:
+            res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}'")
+        else:
+            res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
         return len(list(res)) > 0
 
     def recipeLookup(self, name='', source='', rec=None, recID=None):
@@ -49,8 +53,11 @@ class RecipeAPI(AbstractAPI):
             name = fields[0]
             source = fields[1] if len(fields) > 1 else ''
         logger.debug(f'checking for {name} by {source}')
-        res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
-        return recipe(list(res)[0])
+        if source == None:
+            res = list(self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}'"))
+        else:
+            res = list(self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'"))
+        return recipe(res[0]) if len(res) > 0 else None
 
     def deleteRecipe(self, rec=None, name="", source=""):
         """Accepts either a name and source, or a recipe in the first slot"""

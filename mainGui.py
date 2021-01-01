@@ -3,7 +3,7 @@ import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 from DB.database import *
-from recipeCreator import recipe
+from containers.recipe import recipe
 from apiCalls import *
 from views import recipeEditor as editor
 from views import recipeTable as tableTab

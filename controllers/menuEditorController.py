@@ -3,12 +3,12 @@ import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 from DB.database import *
-from recipeCreator import *
+from containers.recipe import *
 from apiCalls import *
 from KitchenModel import *
 from controllers.controller import controller
 import KitchenGUI.searchBar as searchBar
-import menu as Menu
+import containers.menu as Menu
 import numpy as np
 logger = logging.getLogger('menuEditorController Log')
 
@@ -22,6 +22,7 @@ class menuEditorController(controller):
     def handle(self, event, values):
         if event == "-MENU-SELECT-":
             self.select_menu_modal()
+            self.display_missing_recipes()
             return True
         elif event == "-MENU-SHOPPING-":
             self.model.get('activeMenu').newShoppingList()
@@ -170,6 +171,12 @@ class menuEditorController(controller):
                 break
 
         window.close()
+
+    def display_missing_recipes(self):
+        menu = self.model.get('activeMenu')
+        if len(menu.missing_recipes) > 0:
+            missing = '\n'.join([rec for rec in menu.missing_recipes])
+            sg.popup_ok(f'Some recipes could not be found:\n{missing}')
 
     def select_menu_modal(self):
         search = searchBar.searchBar(key='-MODAL-SEARCH-', api=self.model.get('MenuAPI'), length=20, searchbutton=False)

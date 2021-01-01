@@ -1,8 +1,8 @@
-from dailyMenu import *
+from containers.dailyMenu import *
 import datetime, copy
 import pandas as pd
-from shoppingList import *
-from data_container import *
+from containers.shoppingList import *
+from containers.data_container import *
 
 class menu(data_container):
     dataFields = ['name string', 'startDate string', 'endDate string', 'menus json']
@@ -10,6 +10,7 @@ class menu(data_container):
     pretty_fields = ['Name', 'Start Date', 'End Date', 'Menus']
     date_delimiter = ':'
     def __init__(self, data=None, copyme=None, readIn=None, start=None, end=None, name=None):
+        self.missing_recipes = []
         if copyme:
             self.edit(copy.deepcopy(copyme).guts())
         elif data:
@@ -60,17 +61,8 @@ class menu(data_container):
     def readIn(self, file):
         pass
 
-    # def startDate(self, start):
-    #     """set startdate and initialize menus if end date is present"""
-    #     self.start_date = datetime.date.fromisoformat(start)
-    #     if self.start_date and self.end_date and len(self.menus) == 0:
-    #         self.create_menus()
-    #
-    # def endDate(self, end):
-    #     """set end date and initialize menus if start date is present"""
-    #     self.end_date = datetime.date.fromisoformat(end)
-    #     if self.start_date and self.end_date and len(self.menus) == 0:
-    #         self.create_menus()
+    def getIngs(self):
+        return self.shopping.ingredients
 
     def create_menus(self):
         """creates a day for each day between start and end dates"""

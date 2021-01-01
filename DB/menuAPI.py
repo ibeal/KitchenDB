@@ -1,8 +1,8 @@
-from recipeCreator import *
+from containers.recipe  import *
 from DB.AbstractAPI import *
 from DB.database import *
-from dailyMenu import *
-import menu as Menu
+from containers.dailyMenu import *
+import containers.menu as Menu
 
 class MenuAPI(AbstractAPI):
     def __init__(self, db, recipeAPI):
@@ -32,8 +32,18 @@ class MenuAPI(AbstractAPI):
             for key,val in v['data'].items():
                 # iterate over recipes in categories...
                 # and use the recipeID to lookup the recipe in the database
+                holder = []
                 # TODO: add error checking for missing recipe
-                v['data'][key] = [self.recAPI.recipeLookup(recID=rec) for rec in val]
+                for rec in val:
+                    temp_rec = self.recAPI.recipeLookup(recID=rec)
+                    if temp_rec == None:
+                        temp_rec = self.recAPI.recipeLookup(name=rec.split(recipe.id_delimiter)[0], source=None)
+                    if temp_rec == None:
+                        ret.missing_recipes.append(rec)
+                        continue
+                    holder.append(temp_rec)
+
+                v['data'][key] = holder
             # then update the menu with the new dailyMenu object
             ret.setDay(dailyMenu(data=v))
         return ret

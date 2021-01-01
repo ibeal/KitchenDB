@@ -1,4 +1,4 @@
-from recipeCreator import *
+from containers.recipe import *
 from DB.database import *
 import logging
 

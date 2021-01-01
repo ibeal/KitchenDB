@@ -1,5 +1,5 @@
 from config import *
-from recipeCreator import *
+from containers.recipe import *
 from DB.database import *
 
 def main(**kwargs):

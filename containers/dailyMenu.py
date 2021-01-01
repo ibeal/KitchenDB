@@ -1,7 +1,7 @@
 import logging
 logger = logging.getLogger('dailyMenu Log')
-from recipeCreator import *
-from shoppingList import *
+from containers.recipe  import *
+from containers.shoppingList  import *
 
 class dailyMenu:
     def __init__(self, date='', data=None):
@@ -83,3 +83,6 @@ class dailyMenu:
 
     def get(self, key):
         return self.data[key]
+
+    def getIngs(self):
+        return self.shopping.ingredients

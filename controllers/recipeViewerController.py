@@ -3,7 +3,7 @@ import numpy as np
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-from recipeCreator import *
+from containers.recipe import *
 from KitchenModel import *
 from controllers.controller import *
 logger = logging.getLogger('recipeViewerController log')

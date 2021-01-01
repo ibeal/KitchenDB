@@ -11,5 +11,9 @@ class data_container(ABC):
         ...
 
     @abstractmethod
+    def getIngs(self):
+        ...
+
+    @abstractmethod
     def guts(self):
         ...

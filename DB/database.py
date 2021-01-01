@@ -1,5 +1,5 @@
-from recipeCreator import *
-from menu import *
+from containers.recipe import *
+from containers.menu import *
 import sqlite3 as sql
 import logging
 logger = logging.getLogger('database log')

@@ -1,7 +1,7 @@
 import logging, os.path, json
 from KitchenModel import *
 from DB.database import *
-from recipeCreator import recipe
+from containers.recipe import recipe
 from apiCalls import *
 from views import recipeEditor as editor
 from views import recipeTable as tableTab

@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 # import PySimpleGUIQt as sg
 # import KitchenGUI.searchBar as searchBar
 from DB.database import *
-from recipeCreator import *
+from containers.recipe import *
 from apiCalls import *
 from KitchenModel import *
 from views.view import view

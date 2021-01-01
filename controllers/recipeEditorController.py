@@ -4,7 +4,7 @@ import PySimpleGUI as sg
 # import PySimpleGUIQt as sg
 import KitchenGUI.searchBar as search
 from DB.database import *
-from recipeCreator import *
+from containers.recipe import *
 from apiCalls import *
 from KitchenModel import *
 from controllers.controller import controller
@@ -42,7 +42,9 @@ class recipeEditorController(controller):
             return True
         elif event == '-CLEAR-RECIPE-':
             # self.clearFields()
-            print('clear recipe called')
+            # print('clear recipe called')
+            if self.popup_yes_no('Would you like to save before clearing?', title='Save?'):
+                self.saveFields()
             self.model.set('activeRecipe', value=None)
             return True
         elif event == '-INGREDIENT-SBUTTON-':
@@ -159,7 +161,6 @@ class recipeEditorController(controller):
                 # else, it's an entry box
                 res[field] = value.get()
         # create the recipe, the list comprehension is to put the dictionary in order
-
         # return recipe([res[key] for key in recipe.pretty_fields])
         return recipe(res) if len(res['Title']) > 0 else None
 

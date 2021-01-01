@@ -1,7 +1,8 @@
 import csv, json, yaml, sys, logging, re, copy
 import requests as rq
 from contextlib import suppress
-from data_container import *
+from containers.data_container import *
+import containers.nutrition as nt
 logger = logging.getLogger('recipe log')
 
 class recipe(data_container):
@@ -22,6 +23,7 @@ class recipe(data_container):
             self.readIn(file)
         else:
             self.new()
+        self.nutrition = nt.nutrition(self.ingredients)
 
 
     def __str__(self):
@@ -199,6 +201,9 @@ class recipe(data_container):
 
     def getName(self):
         return self.title
+
+    def getIngs(self):
+        return self.ingredients
 
     @staticmethod
     def topLevelSplit(line):

@@ -1,6 +1,6 @@
 import logging
 logger = logging.getLogger('shoppingList Log')
-from recipeCreator import *
+from containers.recipe import *
 
 class shoppingList:
     def __init__(self):
@@ -29,6 +29,8 @@ class shoppingList:
             if isinstance(arg, shoppingList):
                 self.ingredients.extend(arg.ingredients)
 
+    def getIngs(self):
+        return self.ingredients
     def remove_ingredients(self, *args):
         # no args, just return
         if len(args) < 1:
