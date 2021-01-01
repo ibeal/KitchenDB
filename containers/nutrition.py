@@ -16,7 +16,7 @@ class nutrition:
     def edit(self, data):
         if isinstance(data, list):
             for item in data:
-                self.edit(data)
+                self.edit(item)
         elif isinstance(data, data_container):
             self.ingredients.extend(data.getIngs())
         elif isinstance(data, dailyMenu):

@@ -250,7 +250,6 @@ class recipe(data_container):
     def interp(line):
         """Fairly complicated function, used to interpret my stringified list
         it takes a string and outputs a list"""
-
         if not isinstance(line, str):
             return line
         # this iterates through each character, so last is the last character

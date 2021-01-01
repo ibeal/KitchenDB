@@ -1,6 +1,7 @@
 import logging
 logger = logging.getLogger('shoppingList Log')
-from containers.recipe import *
+# from containers.recipe import *
+import containers.recipe as rc
 
 class shoppingList:
     def __init__(self):
@@ -18,7 +19,8 @@ class shoppingList:
             return
         for arg in args:
             # if the argument is a recipe add each ingredient from the recipe
-            if isinstance(arg, recipe):
+            # print(recipe)
+            if isinstance(arg, rc.recipe):
                 for ing in arg.ingredients:
                     self.ingredients.append(ing)
             # if the argument is a list, recursive call on each item in the list
@@ -31,6 +33,7 @@ class shoppingList:
 
     def getIngs(self):
         return self.ingredients
+
     def remove_ingredients(self, *args):
         # no args, just return
         if len(args) < 1:
