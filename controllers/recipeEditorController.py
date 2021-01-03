@@ -43,7 +43,7 @@ class recipeEditorController(controller):
         elif event == '-CLEAR-RECIPE-':
             # self.clearFields()
             # print('clear recipe called')
-            if self.popup_yes_no('Would you like to save before clearing?', title='Save?'):
+            if sg.popup_yes_no('Would you like to save before clearing?', title='Save?'):
                 self.saveFields()
             self.model.set('activeRecipe', value=None)
             return True
@@ -64,6 +64,8 @@ class recipeEditorController(controller):
                 return True
             self.addIng(values[self.ingTableKey][0], amount)
             return True
+        elif event == self.ingTableKey:
+            self.add_ing_modal(values[self.ingTableKey][0])
         return False
 
     def update(self, data):
@@ -95,6 +97,50 @@ class recipeEditorController(controller):
             self.model.window[self.recFields[field]].update(value=value)
             # self.model.window.fill({self.recFields[field]: value})
 
+    def add_ing_modal(self, choice):
+        choice = self.ingTableData[choice]
+        logger.debug(f'choice:{choice}')
+        # food_info = self.model.get('api').apiGetByID(choice["fdcId"])
+        # logger.debug(f'food_info:{food_info}')
+        # serving_size = food_info["householdServingFullText"].split(' ', 1)
+        serving_size = ('2', 'Cups')
+        # logger.debug(f'serving_size:{serving_size}')
+        units = [serving_size[1]]
+        # units = ['tsp', 'Tbsp', 'Cups']
+
+        layout = [
+            [sg.Multiline(choice)],
+            [sg.T('Amount: '),
+             sg.In(key='amount-quantity', default_text=serving_size[0]),
+             sg.Combo(values=units, key='amount-unit',
+                     default_value=units[0])],
+            [sg.Button('Add', key="-MODAL-ADD-"),
+             sg.Button('Cancel', key="-MODAL-CANCEL-")]
+        ]
+
+        window = sg.Window('Add Ingredient', layout, finalize=True)
+        # load active recipe into search bar
+
+        while True:
+            event, values = window.read()
+
+            if event in (sg.WIN_CLOSED, "-MODAL-CANCEL-"):
+                break
+
+            elif event == "-MODAL-ADD-":
+                amount = window["amount-quantity"].get()
+                if '/' in amount:
+                    matcher = recipeEditorController.mixed_number.match(amount)
+                    whole = float(matcher.group(1)) if len(matcher.group(1)) > 0 else 0
+                    amount = whole + eval(matcher.group(2))
+                amount = f'{float(amount)} {window["amount-unit"].get()}'
+                ing = (choice['description'], choice['fdcId'], amount)
+                self.model.window[self.recFields['Ingredients']].update(value=str(ing)+'\n', append=True)
+                # self.model.notifyOberservers('activeMenuDay')
+                break
+
+        window.close()
+
     def addIng(self, choice, entry):
         """Add ingredient to the ingredient text box
         Input:
@@ -108,8 +154,9 @@ class recipeEditorController(controller):
             sg.popup('The amount box is empty.',title='Amount Missing')
         else:
             choice = self.ingTableData[choice]
-            ing = f"('{database.db_clean(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
-            self.model.window[self.recFields['Ingredients']].update(value=ing, append=True)
+            # ing = f"('{database.db_clean(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
+            ing = (choice["description"], choice['fdcId'], amount)
+            self.model.window[self.recFields['Ingredients']].update(value=str(ing)+'\n', append=True)
 
     def clearFields(self):
         """Simple function that clears all the fields in the recipe view"""
@@ -210,27 +257,6 @@ class recipeEditorController(controller):
             self.model.get('RecipeAPI').deleteRecipe(self.model.window[self.recFields['Title']].get())
             self.clearFields()
 
-    # def searchdb(self, query):
-    #     row, col = self.recTableDim
-    #     # get search results
-    #     recs = self.model.get('RecipeAPI').search(query)
-    #     data = []
-    #     header = recipe.pretty_fields[:col]
-    #     for rec in recs:
-    #         recInfo = rec.guts()
-    #         temp = []
-    #         for col in header:
-    #             temp.append(recInfo[col])
-    #         data.append(temp)
-    #
-    #     # preppend header list
-    #     # data = [header, *data]
-    #     # pass all data to update table
-    #     self.model.set("state", "lastTableAction", value="search", notify=False)
-    #     self.model.set("state", "lastSearch", value=query, notify=False)
-    #     self.tableData = recs
-    #     self.recTable.update(values = data)
-
     def recipe_modal(self, rec):
         sg.popup(rec.__str__());
 
@@ -249,7 +275,7 @@ class recipeEditorController(controller):
 
         logger.debug(f'Searching for ingredients. query={query}')
         response = self.model.get('api').apiSearchFood(query)
-        options = response.json()['foods'][:limit]
+        options = response['foods']
         # data = [['[BLANK]'] * table.cols for i in range(table.rows)]
         data = []
         for i in range(len(options)):

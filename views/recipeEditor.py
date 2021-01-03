@@ -73,7 +73,8 @@ class recipeEditor(sg.Tab, view):
                                 headings=['Food', 'Company', 'Ingredients'],
                                 col_widths=[8, 20, 20],
                                 auto_size_columns=False,
-                                key=self.ingTableKey)
+                                key=self.ingTableKey,
+                                enable_events=True)
         self.master.expands['x'].append(self.ingTable)
 
         dir = sg.Multiline(key='-Directions-BOX-', size=(50,10))

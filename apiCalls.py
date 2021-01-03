@@ -1,7 +1,7 @@
 import requests as rq
 import logging
-global logger
-logger = logging.getLogger('apiCalls.py')
+logger = logging.getLogger('apiCalls')
+import usda
 
 class apiCalls():
     def __init__(self,
@@ -9,8 +9,9 @@ class apiCalls():
                  id='https://developer.nrel.gov/fdc/v1/?api_key=k9R497XuT9TaSKdctYsOs9WkpduyKDeoiIJemb0&location=Denver+CO'):
         self.apiKey = key
         self.apiId = id
+        self.api = usda.UsdaClient(key)
 
-    def apiGetByID(self):
+    def apiGetByID(self, id):
         """Returns the request item recieved. Format of the .json() of the opject is:
         {
             "fdcId": 45001529,
@@ -38,7 +39,8 @@ class apiCalls():
             "score": 0
           }
           """
-        return rq.get(f'https://api.nal.usda.gov/fdc/v1/food/{self.apiId}?api_key={self.apiKey}')
+        return rq.get(f'https://api.nal.usda.gov/fdc/v1/food/{id}?api_key={self.apiKey}').json()
+        # return self.api.get_food_report(id)
 
     def apiGetFoodList():
         """Returns a list of all food items. Format of the .json() of the object is:
@@ -46,7 +48,7 @@ class apiCalls():
         """
         return rq.get(f'https://api.nal.usda.gov/fdc/v1/foods/list?api_key={self.apiKey}')
 
-    def apiSearchFood(self, searchStr, **params):
+    def apiSearchFood(self, searchStr, limit=20, **params):
         """Returns a list of all food items. Format of the .json() of the object is:
         {
         "foodSearchCriteria": {},
@@ -82,6 +84,5 @@ class apiCalls():
         ]
       }
       """
-        for k,v in params:
-            searchStr += f'{k}: {v}'
-        return rq.get(f'https://api.nal.usda.gov/fdc/v1/foods/search?api_key={self.apiKey}&query={searchStr}')
+        return rq.get(f'https://api.nal.usda.gov/fdc/v1/foods/search?api_key={self.apiKey}&query={searchStr}').json()
+        # return self.api.search_foods_raw(searchStr, limit)
