@@ -75,18 +75,18 @@ class recipeEditor(sg.Tab, view):
                                 auto_size_columns=False,
                                 key=self.ingTableKey,
                                 enable_events=True)
-        self.master.expands['x'].append(self.ingTable)
+        # self.master.expands['x'].append(self.ingTable)
 
         dir = sg.Multiline(key='-Directions-BOX-', size=(50,10))
-        self.master.expands['xy'].append(dir)
+        # self.master.expands['xy'].append(dir)
         # self.master.recFields['Directions'] = dir
 
         ing = sg.Multiline(key='-Ingredients-BOX-', size=(50,10))
-        self.master.expands['xy'].append(ing)
+        # self.master.expands['xy'].append(ing)
         # self.master.recFields['Ingredients'] = ing
 
         addbox = [sg.T('Amount'), sg.In(key='-AMOUNT-')]
-        self.master.expands['x'].append(addbox)
+        # self.master.expands['x'].append(addbox)
         self.search = searchBar.searchBar(key='INGREDIENT', api=self.model.get('RecipeAPI'),
                                           interactive=False)
         layout = [
@@ -100,7 +100,7 @@ class recipeEditor(sg.Tab, view):
                 [sg.T('Ingredients')],
                 [self.search],
                 [self.ingTable],
-                [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
+                # [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
                 [ing]
         ]
 

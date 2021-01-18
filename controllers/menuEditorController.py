@@ -117,7 +117,7 @@ class menuEditorController(controller):
             [sg.Button('Close')]
         ]
 
-        window = sg.Window('Shopping List', layout, finalize=True)
+        window = sg.Window('Shopping List', layout, finalize=True, modal=True)
 
         while True:
             event, values = window.read()
@@ -145,7 +145,7 @@ class menuEditorController(controller):
              sg.Button('Cancel', key="-MODAL-CANCEL-")]
         ]
 
-        window = sg.Window('Select Menu', layout, finalize=True)
+        window = sg.Window('Select Menu', layout, finalize=True, modal=True)
         # load active recipe into search bar
 
         while True:
@@ -187,7 +187,7 @@ class menuEditorController(controller):
              sg.Button('Cancel', key="-MODAL-CANCEL-")]
         ]
 
-        window = sg.Window('Select Menu', layout, finalize=True)
+        window = sg.Window('Select Menu', layout, finalize=True, modal=True)
         new = False
 
         while True:
@@ -231,7 +231,7 @@ class menuEditorController(controller):
              sg.Button('Cancel', key="-MODAL-CANCEL-")]
         ]
 
-        window = sg.Window('New Menu', layout, finalize=True)
+        window = sg.Window('New Menu', layout, finalize=True, modal=True)
         set_name = False
         while True:
             event, values = window.read()

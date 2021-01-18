@@ -82,7 +82,7 @@ class recipeViewerController(controller):
           ],
           [sg.Button('Export'), sg.Button('Cancel')]]
 
-        window = sg.Window('Export Details', layout)
+        window = sg.Window('Export Details', layout, modal=true)
 
         while True:
             event, values = window.read()

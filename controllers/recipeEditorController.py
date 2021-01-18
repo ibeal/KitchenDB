@@ -3,6 +3,7 @@ import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 import KitchenGUI.searchBar as search
+from contextlib import suppress
 from DB.database import *
 from containers.recipe import *
 from apiCalls import *
@@ -105,20 +106,20 @@ class recipeEditorController(controller):
         # serving_size = food_info["householdServingFullText"].split(' ', 1)
         serving_size = ('2', 'Cups')
         # logger.debug(f'serving_size:{serving_size}')
-        units = [serving_size[1]]
-        # units = ['tsp', 'Tbsp', 'Cups']
-
+        # units = [serving_size[1]]
+        units = ['tsp', 'Tbsp', 'Cups']
+        
         layout = [
-            [sg.Multiline(choice)],
+            [sg.Multiline(choice, size=(50,8))],
             [sg.T('Amount: '),
-             sg.In(key='amount-quantity', default_text=serving_size[0]),
+             sg.In(key='amount-quantity', default_text=serving_size[0], size=(10,1)),
              sg.Combo(values=units, key='amount-unit',
-                     default_value=units[0])],
+                     default_value=units[0], size=(10,1))],
             [sg.Button('Add', key="-MODAL-ADD-"),
              sg.Button('Cancel', key="-MODAL-CANCEL-")]
         ]
 
-        window = sg.Window('Add Ingredient', layout, finalize=True)
+        window = sg.Window('Add Ingredient', layout, finalize=True, modal=True)
         # load active recipe into search bar
 
         while True:
