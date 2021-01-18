@@ -1,11 +1,11 @@
-import logging
+import logging, sys
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-from DB.database import *
-from containers.recipe import *
-from apiCalls import *
-from KitchenModel import *
+# from DB.database import database
+# from containers.recipe import recipe
+# from apiCalls import apiCalls
+from KitchenModel import KitchenModel
 from controllers.controller import controller
 import KitchenGUI.searchBar as searchBar
 import containers.menu as Menu
@@ -94,20 +94,20 @@ class menuEditorController(controller):
 
         if self.model.get('MenuAPI').menuExists(menu):
             self.model.get('MenuAPI').deleteMenu(menu)
-            if update_name != None and update_name != menu.getName():
+            if update_name is not None and update_name != menu.getName():
                 menu.name = update_name
             try:
                 self.model.get('MenuAPI').saveMenu(menu)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
-                logger.debug("Unexpected error:", sys.exc_info()[0])
+                logger.debug("Unexpected error:" + sys.exc_info()[0])
                 return
         else:
             try:
                 self.model.get('MenuAPI').saveMenu(menu)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
-                logger.debug("Unexpected error:", sys.exc_info()[0])
+                logger.debug("Unexpected error:" + sys.exc_info()[0])
                 return
         self.model.set('activeMenu', value=menu)
 

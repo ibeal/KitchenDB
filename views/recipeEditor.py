@@ -1,14 +1,15 @@
-import logging
+import logging, re
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 import KitchenGUI.searchBar as searchBar
-from DB.database import *
-from containers.recipe import *
-from apiCalls import *
-from KitchenModel import *
+# from DB.database import database
+from containers.recipe import recipe
+from contextlib import suppress
+# from apiCalls import apiCalls
+from KitchenModel import KitchenModel
 from views.view import view
-from controllers.recipeEditorController import *
+from controllers.recipeEditorController import recipeEditorController
 logger = logging.getLogger('recipeEditor log')
 
 class recipeEditor(sg.Tab, view):

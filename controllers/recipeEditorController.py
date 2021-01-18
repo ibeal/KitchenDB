@@ -1,13 +1,13 @@
-import logging
+import logging, re, sys
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-import KitchenGUI.searchBar as search
+# import KitchenGUI.searchBar as search
 from contextlib import suppress
-from DB.database import *
-from containers.recipe import *
-from apiCalls import *
-from KitchenModel import *
+# from DB.database import database
+from containers.recipe import recipe
+# from apiCalls import apiCalls
+from KitchenModel import KitchenModel
 from controllers.controller import controller
 logger = logging.getLogger('recipeEditorController Log')
 
@@ -231,7 +231,7 @@ class recipeEditorController(controller):
                     self.model.get('RecipeAPI').saveRecipe(rec)
                 except:
                     sg.PopupError('Error occured during saving', title='Error')
-                    logger.debug("Unexpected error:", sys.exc_info()[0])
+                    logger.debug("Unexpected error:" + sys.exc_info()[0])
                     return
 
         elif (self.model.get('activeRecipe') != None): # and (self.model.get('RecipeAPI').recipeExists(self.model.get('activeRecipe'))):
@@ -242,14 +242,14 @@ class recipeEditorController(controller):
                     self.model.get('RecipeAPI').saveRecipe(rec)
                 except:
                     sg.PopupError('Error occured during saving', title='Error')
-                    logger.debug("Unexpected error:", sys.exc_info()[0])
+                    logger.debug("Unexpected error:" + sys.exc_info()[0])
                     return
         else:
             try:
                 self.model.get('RecipeAPI').saveRecipe(rec)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
-                logger.debug("Unexpected error:", sys.exc_info()[0])
+                logger.debug("Unexpected error:" + sys.exc_info()[0])
                 return
         self.model.set('activeRecipe', value=rec)
 

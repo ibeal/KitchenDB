@@ -1,18 +1,24 @@
 import logging
-import PySimpleGUI as sg
+# import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-import KitchenGUI.searchBar as search
-from DB.database import *
-from containers.recipe import *
-from apiCalls import *
-from KitchenModel import *
+# import KitchenGUI.searchBar as search
+# from DB.database import database
+# from containers.recipe import recipe
+# from apiCalls import apiCalls
+from KitchenModel import KitchenModel
 from controllers.controller import controller
 logger = logging.getLogger('recipeTableController Log')
 
 class recipeTableController(controller):
     def __init__(self):
         self.model = KitchenModel.getInstance()
+        self.features = None
+        self.recTable = None
+        self.tableData = None
+        self.recTableDim = None
+        self.tableKey = None
+        self.search = None
 
     def setup(self):
         logger.debug("setup initiated...")

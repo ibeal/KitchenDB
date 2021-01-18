@@ -1,16 +1,17 @@
-import logging
+import logging, yaml
 import numpy as np
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-from containers.recipe import *
-from KitchenModel import *
-from controllers.controller import *
+from containers.recipe import recipe
+from KitchenModel import KitchenModel
+from controllers.controller import controller
 logger = logging.getLogger('recipeViewerController log')
 
 class recipeViewerController(controller):
     def __init__(self):
         self.model = KitchenModel.getInstance()
+        self.recipeBox = None
 
     def setup(self):
         self.recipeBox = self.model.get("tabData", "-VIEWER-", "recipeBox")
@@ -82,7 +83,7 @@ class recipeViewerController(controller):
           ],
           [sg.Button('Export'), sg.Button('Cancel')]]
 
-        window = sg.Window('Export Details', layout, modal=true)
+        window = sg.Window('Export Details', layout, modal=True)
 
         while True:
             event, values = window.read()
