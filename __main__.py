@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import mainCLI, sys, testRealm, logging, mainGui, os
 import tkinter
 import KitchenGUI as gui
