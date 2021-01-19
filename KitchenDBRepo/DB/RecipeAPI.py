@@ -1,7 +1,9 @@
-from containers.recipe import *
-from DB.AbstractAPI import *
-from DB.database import *
 import json
+import logging
+from containers.recipe import recipe
+from DB.AbstractAPI import AbstractAPI
+from DB.database import database
+logger = logging.getLogger('RecipeAPI Log')
 
 class RecipeAPI(AbstractAPI):
     def __init__(self, db):
@@ -106,6 +108,7 @@ class RecipeAPI(AbstractAPI):
         # self.db.cur.execute(query)
         data = rec.guts()
         data.pop('Total Time')
+        print(tuple(data.values()))
         # logger.debug('executing: ' + query)
         self.db.cur.execute(f"insert into {table} values (?,?,?,?,?,?,?,?,?)", tuple(data.values()))
         self.db.conn.commit()

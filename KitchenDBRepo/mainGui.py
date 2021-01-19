@@ -2,15 +2,15 @@ import logging, os.path, json
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-from DB.database import *
+# from DB.database import database
 from containers.recipe import recipe
-from apiCalls import *
+# from apiCalls import apiCalls
 from views import recipeEditor as editor
 from views import recipeTable as tableTab
 from views import recipeViewer as viewer
 from views import menuEditor
-from KitchenModel import *
-from MainController import *
+from KitchenModel import KitchenModel
+from MainController import MainController
 logger = logging.getLogger('mainGui Log')
 
 class gui:
@@ -83,7 +83,12 @@ class gui:
             return self.model.get('prefs')
         with open(self.model.get('prefFile'), 'r') as f:
             logger.debug('config found, using custom settings')
-            return json.load(f)
+            specs = json.load(f)
+            if not os.path.exists(specs["recipeFolder"]):
+                logger.debug("Invalid recipe Folder!")
+            if not os.path.exists(specs["dbLocation"]):
+                logger.debug("Invalid Database Location")
+        return specs
 
 def main(**kwargs):
     g = gui(**kwargs)

@@ -1,9 +1,10 @@
-from DB.database import *
-from DB.RecipeAPI import *
-from DB.MenuAPI import *
-from apiCalls import *
+import os
+import logging
+from DB.database import database
+from DB.RecipeAPI import RecipeAPI
+from DB.MenuAPI import MenuAPI
+from apiCalls import apiCalls
 from views.view import view
-import os, logging
 logger = logging.getLogger('KitchenModel Log')
 
 
@@ -14,7 +15,7 @@ class KitchenModel:
         """ Static access method. """
         if caller and isinstance(caller, view):
         # if caller:
-            self.data["observers"].append(caller)
+            KitchenModel.__instance.data["observers"].append(caller)
         if KitchenModel.__instance == None:
             KitchenModel()
         return KitchenModel.__instance
@@ -30,6 +31,7 @@ class KitchenModel:
             self.data["controllers"] = {}
             self.data["tabData"] = {}
             self.data["activeRecipe"] = None
+            self.data["newRecipe"] = None
             self.data["activeMenu"] = None
             self.data["activeMenuDay"] = None
             self.data["recipe_table"] = None

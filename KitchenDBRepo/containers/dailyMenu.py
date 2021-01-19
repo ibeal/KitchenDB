@@ -1,7 +1,7 @@
 import logging
+# from containers.recipe import recipe
+from containers.shoppingList  import shoppingList
 logger = logging.getLogger('dailyMenu Log')
-from containers.recipe  import *
-from containers.shoppingList  import *
 
 class dailyMenu:
     def __init__(self, date='', data=None):

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
-import mainCLI, sys, testRealm, logging, mainGui, os
+import sys, testRealm, logging, mainGui, os
 import tkinter
 import KitchenGUI as gui
 
-global logger
 logger = logging.getLogger('Debug Log')
 
 if '-d' in sys.argv:
@@ -12,9 +11,9 @@ if '-d' in sys.argv:
     logging.basicConfig(level=logging.DEBUG)
     logger.debug('Debug mode activated. All debug logs will be shown')
 
-if '--cli' in sys.argv:
-    mainCLI.main()
-    exit(0)
+# if '--cli' in sys.argv:
+#     mainCLI.main()
+#     exit(0)
 
 if '-t' in sys.argv:
     # run the test module && exit

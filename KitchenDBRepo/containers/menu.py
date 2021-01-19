@@ -1,8 +1,8 @@
-from containers.dailyMenu import *
 import datetime, copy
 import pandas as pd
-from containers.shoppingList import *
-from containers.data_container import *
+from containers.data_container import data_container
+from containers.dailyMenu import dailyMenu
+from containers.shoppingList import shoppingList
 
 class menu(data_container):
     dataFields = ['name string', 'startDate string', 'endDate string', 'menus json']
@@ -20,7 +20,7 @@ class menu(data_container):
         else:
             self.new(start, end, name)
 
-    def new(self, start, end, name):
+    def new(self, start=None, end=None, name=None):
         self.shopping = shoppingList()
         self.menus = {}
         self.start_date = datetime.date.fromisoformat(start) if start else None

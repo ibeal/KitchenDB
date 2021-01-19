@@ -1,14 +1,16 @@
-from containers.recipe  import *
-from DB.AbstractAPI import *
-from DB.database import *
-from containers.dailyMenu import *
-import containers.menu as Menu
+import logging
+from containers.recipe  import recipe
+from DB.AbstractAPI import AbstractAPI
+from DB.database import database
+from containers.dailyMenu import dailyMenu
+from containers.menu import menu as Menu
+logger = logging.getLogger("MenuAPI Log")
 
 class MenuAPI(AbstractAPI):
     def __init__(self, db, recipeAPI):
         self.recAPI = recipeAPI
         self.db = db
-        self.db.createTable(name='menus', fields=menu.dataFields)
+        self.db.createTable(name='menus', fields=Menu.dataFields)
 
     def menuExists(self, menu=None, name=""):
         if menu:
@@ -24,28 +26,6 @@ class MenuAPI(AbstractAPI):
         res = self.db.cur.execute(f"SELECT * FROM menus WHERE name='{name}'")
         ret = Menu.menu(list(res)[0])
         ret = self.menuUnpack(ret)
-        # TODO: refactor this code to its own function
-        # This code unpacks the packed menu object
-        # iterate over daily menus...
-        # for k,v in ret.menus.items():
-        #     # iterate over categories...
-        #     for key,val in v['data'].items():
-        #         # iterate over recipes in categories...
-        #         # and use the recipeID to lookup the recipe in the database
-        #         holder = []
-        #         # TODO: add error checking for missing recipe
-        #         for rec in val:
-        #             temp_rec = self.recAPI.recipeLookup(recID=rec)
-        #             if temp_rec == None:
-        #                 temp_rec = self.recAPI.recipeLookup(name=rec.split(recipe.id_delimiter)[0], source=None)
-        #             if temp_rec == None:
-        #                 ret.missing_recipes.append(rec)
-        #                 continue
-        #             holder.append(temp_rec)
-        #
-        #         v['data'][key] = holder
-        #     # then update the menu with the new dailyMenu object
-        #     ret.setDay(dailyMenu(data=v))
         return ret
 
     def menuUnpack(self, menu):
@@ -59,9 +39,9 @@ class MenuAPI(AbstractAPI):
                 # TODO: add error checking for missing recipe
                 for rec in val:
                     temp_rec = self.recAPI.recipeLookup(recID=rec)
-                    if temp_rec == None:
+                    if temp_rec is None:
                         temp_rec = self.recAPI.recipeLookup(name=rec.split(recipe.id_delimiter)[0], source=None)
-                    if temp_rec == None:
+                    if temp_rec is None:
                         ret.missing_recipes.append(rec)
                         continue
                     holder.append(temp_rec)

@@ -1,4 +1,6 @@
-import logging, re, sys
+import logging
+import re
+import json
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
@@ -9,12 +11,16 @@ from containers.recipe import recipe
 # from apiCalls import apiCalls
 from KitchenModel import KitchenModel
 from controllers.controller import controller
+from containers.ingredient import ingredient
 logger = logging.getLogger('recipeEditorController Log')
 
 class recipeEditorController(controller):
     mixed_number = re.compile(r'\s*(\d*)\s*(\d[\/]\d)(.*)')
     def __init__(self):
         self.model = KitchenModel.getInstance()
+        self.ingTableKey = None
+        self.recFields = None
+        self.ingTable = None
 
     def setup(self):
         self.ingTableKey = self.model.get("tabData", "-EDITOR-","ingTableKey")
@@ -73,30 +79,30 @@ class recipeEditorController(controller):
         self.table = data
         self.ingTable.update(data)
 
-    def fillFields(self, rec):
-        """Function that will fill the recipe fields with the recipe data.
-        Input:
-        rec: recipe object with information to fill fields with
-        """
-        logger.debug("fill fields callback with:")
-        logger.debug(rec)
-        self.model.set('activeRecipe', value=rec)
-        # rec.gets returns a dictionary with all the information in it
-        for field, value in rec.guts().items():
-            if field == "Directions":
-                # data preprocessing, each direction should be seperated with a newline
-                value = '\n'.join(value)
-                value += '\n'
-            elif field == "Ingredients":
-                # data preprocessing, each direction is grouped in three and seperated
-                # with newlines
-                value = '\n'.join([f'{a,b,c}' for a,b,c in value])
-                value += '\n'
-            # clear the field
-            # self.recFields[field].delete(SPOT, tk.END)
-            # fill the field
-            self.model.window[self.recFields[field]].update(value=value)
-            # self.model.window.fill({self.recFields[field]: value})
+    # def fillFields(self, rec):
+    #     """Function that will fill the recipe fields with the recipe data.
+    #     Input:
+    #     rec: recipe object with information to fill fields with
+    #     """
+    #     logger.debug("fill fields callback with:")
+    #     logger.debug(rec)
+    #     self.model.set('activeRecipe', value=rec)
+    #     # rec.gets returns a dictionary with all the information in it
+    #     for field, value in rec.guts().items():
+    #         if field == "Directions":
+    #             # data preprocessing, each direction should be seperated with a newline
+    #             value = '\n'.join(value)
+    #             value += '\n'
+    #         elif field == "Ingredients":
+    #             # data preprocessing, each direction is grouped in three and seperated
+    #             # with newlines
+    #             value = '\n'.join([f'{a,b,c}' for a,b,c in value])
+    #             value += '\n'
+    #         # clear the field
+    #         # self.recFields[field].delete(SPOT, tk.END)
+    #         # fill the field
+    #         self.model.window[self.recFields[field]].update(value=value)
+    #         # self.model.window.fill({self.recFields[field]: value})
 
     def add_ing_modal(self, choice):
         choice = self.ingTableData[choice]
@@ -134,9 +140,11 @@ class recipeEditorController(controller):
                     matcher = recipeEditorController.mixed_number.match(amount)
                     whole = float(matcher.group(1)) if len(matcher.group(1)) > 0 else 0
                     amount = whole + eval(matcher.group(2))
-                amount = f'{float(amount)} {window["amount-unit"].get()}'
-                ing = (choice['description'], choice['fdcId'], amount)
-                self.model.window[self.recFields['Ingredients']].update(value=str(ing)+'\n', append=True)
+                # amount = f'{float(amount)} {window["amount-unit"].get()}'
+                ing = ingredient((choice['description'], choice['fdcId'],
+                       amount, window["amount-unit"].get()))
+                self.model.get('newRecipe').ingredients.append(ing)
+                self.model.window[self.recFields['Ingredients']].update(value=json.dumps(ing.guts())+'\n', append=True)
                 # self.model.notifyOberservers('activeMenuDay')
                 break
 
@@ -157,7 +165,7 @@ class recipeEditorController(controller):
             choice = self.ingTableData[choice]
             # ing = f"('{database.db_clean(choice['description'])}', {choice['fdcId']}, '{amount}')\n"
             ing = (choice["description"], choice['fdcId'], amount)
-            self.model.window[self.recFields['Ingredients']].update(value=str(ing)+'\n', append=True)
+            self.model.window[self.recFields['Ingredients']].update(value=json.dumps(ing)+'\n', append=True)
 
     def clearFields(self):
         """Simple function that clears all the fields in the recipe view"""
@@ -197,19 +205,23 @@ class recipeEditorController(controller):
             elif field == "Ingredients":
                 text = value.get()
                 # only the first two things happen here
-                temp = [val for val in text.split('\n') if len(val) > 0]
+                temp = [val for val in text.split('\n') if len(val.strip()) > 0]
                 # Additionally, the tuples are interpreted here,
                 # then the whole thing is stringified
-                res[field] = [recipe.interp(s) for s in temp]
-                for ing in res[field]:
-                    if len(ing) != 3:
-                        sg.PopupError(f'There is an error with the following ingredient, please delete it and re-add it: {ing}', title="Error!")
-                        return None
+
+                res[field] = [ingredient(s) for s in temp]
+                # res[field] = self.model.get('newRecipe').ingredients
+
+                # for ing in res[field]:
+                #     if len(ing) != 3:
+                #         sg.PopupError(f'There is an error with the following ingredient, please delete it and re-add it: {ing}', title="Error!")
+                #         return None
             else:
                 # else, it's an entry box
                 res[field] = value.get()
         # create the recipe, the list comprehension is to put the dictionary in order
         # return recipe([res[key] for key in recipe.pretty_fields])
+        
         return recipe(res) if len(res['Title']) > 0 else None
 
     def saveFields(self):
@@ -220,37 +232,41 @@ class recipeEditorController(controller):
         self.model.db: database to send the information
         """
         rec = self.getFields()
-        if rec == None:
+        
+        if rec is None:
             logger.debug('A NoneType recipe was returned from getfields, aborting saveFields...')
             return
+        # case 1: recipe exists, name and source are unchanged
         if self.model.get('RecipeAPI').recipeExists(rec):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.model.get('RecipeAPI').deleteRecipe(rec)
                 try:
                     self.model.get('RecipeAPI').saveRecipe(rec)
-                except:
+                except Exception as e:
                     sg.PopupError('Error occured during saving', title='Error')
-                    logger.debug("Unexpected error:" + sys.exc_info()[0])
-                    return
+                    logger.debug(f"Unexpected error (case 1): {e}")
+                    raise
 
-        elif (self.model.get('activeRecipe') != None): # and (self.model.get('RecipeAPI').recipeExists(self.model.get('activeRecipe'))):
+        # case 2: recipe exists, name and source were changed
+        elif (self.model.get('activeRecipe') is not None): # and (self.model.get('RecipeAPI').recipeExists(self.model.get('activeRecipe'))):
             if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                 # save to db
                 self.model.get('RecipeAPI').deleteRecipe(self.model.get('activeRecipe'))
                 try:
                     self.model.get('RecipeAPI').saveRecipe(rec)
-                except:
+                except Exception as e:
                     sg.PopupError('Error occured during saving', title='Error')
-                    logger.debug("Unexpected error:" + sys.exc_info()[0])
-                    return
+                    logger.debug(f"Unexpected error (case 2): {e}")
+                    raise
+        # case 3: recipe doesn't exist yet
         else:
             try:
                 self.model.get('RecipeAPI').saveRecipe(rec)
-            except:
+            except Exception as e:
                 sg.PopupError('Error occured during saving', title='Error')
-                logger.debug("Unexpected error:" + sys.exc_info()[0])
-                return
+                logger.debug(f"Unexpected error (case 3): {e}")
+                raise
         self.model.set('activeRecipe', value=rec)
 
     def deleteRecipe(self):

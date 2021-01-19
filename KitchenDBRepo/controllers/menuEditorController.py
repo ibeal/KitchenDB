@@ -100,14 +100,14 @@ class menuEditorController(controller):
                 self.model.get('MenuAPI').saveMenu(menu)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
-                logger.debug("Unexpected error:" + sys.exc_info()[0])
+                logger.debug(f"Unexpected error:{sys.exc_info()[0].__str__()}")
                 return
         else:
             try:
                 self.model.get('MenuAPI').saveMenu(menu)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
-                logger.debug("Unexpected error:" + sys.exc_info()[0])
+                logger.debug(f"Unexpected error:{sys.exc_info()[0].__str__()}")
                 return
         self.model.set('activeMenu', value=menu)
 

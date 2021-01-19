@@ -1,8 +1,9 @@
 import logging
-from containers.recipe import *
-from containers.menu import *
-from containers.dailyMenu import *
-from containers.shoppingList import *
+# from containers.recipe import recipe
+# from containers.menu import menu
+from containers.dailyMenu import dailyMenu
+from containers.data_container import data_container
+# from containers.shoppingList import shoppingList
 logger = logging.getLogger('nutrition object Log')
 
 class nutrition:

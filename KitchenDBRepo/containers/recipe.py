@@ -1,7 +1,9 @@
-import csv, json, yaml, sys, logging, re, copy
-import requests as rq
-from contextlib import suppress
-from containers.data_container import *
+import logging
+import re
+import copy
+import yaml
+from containers.ingredient import ingredient
+from containers.data_container import data_container
 import containers.nutrition as nt
 logger = logging.getLogger('recipe log')
 
@@ -24,23 +26,28 @@ class recipe(data_container):
         else:
             self.new()
         self.nutrition = nt.nutrition(self.ingredients)
+        self.ingredients = self.build_ingredients()
 
 
     def __str__(self):
         ingr = ''
-        dir = ''
+        Dir = ''
         info = f'{self.title}\nYields: {self.yieldAmnt} | Category: {self.category} | Rating: {self.rating}\n' +\
             f'Time - Prep: {self.prep_time} | Cook: {self.cook_time} | Total: {self.prep_time + self.cook_time}'
-        for food, id, amount in self.ingredients:
-            ingr += f'{food}: {amount}\n'
+        for ing in self.ingredients:
+            ingr += f'{ing.__str__()}\n'
         for direction in self.directions:
-            dir += f'{direction}\n'
+            Dir += f'{direction}\n'
         if self.multiplied != 1.0:
-            dir += f'\n\n*This recipe has been multiplied by {self.multiplied}, cooking times may be affected*'
+            Dir += f'\n\n*This recipe has been multiplied by {self.multiplied}, cooking times may be affected*'
 
-        return f'{info}\n\n{ingr}\n{dir}'
+        return f'{info}\n\n{ingr}\n{Dir}'
 
-    def guts(self):
+    def build_ingredients(self):
+        return [ingredient(ing) for ing in self.ingredients]
+
+    def guts(self, pack=True):
+        ings = [ing.guts() for ing in self.ingredients] if pack else self.ingredients
         return {"Title": self.title,
                 "Prep Time": self.prep_time,
                 "Cook Time": self.cook_time,
@@ -48,7 +55,7 @@ class recipe(data_container):
                 "Yield": self.yieldAmnt,
                 "Category": self.category,
                 "Rating": self.rating,
-                "Ingredients": self.ingredients,
+                "Ingredients": ings,
                 "Directions": self.directions,
                 "Source": self.source}
 
@@ -151,23 +158,6 @@ class recipe(data_container):
             new_ingredients.append((ing[0],ing[1],newAmnt))
         self.ingredients = new_ingredients
         return self
-
-    def cli_new(self):
-        """Function that builds the recipe.yaml file from user input"""
-        self.title = input('Please enter the recipe name: ')
-        if self.title == 'q':
-            exit()
-        # FIXME: error checking on input
-        self.prep_time = int(input('Please enter the prep time (minutes): '))
-        self.cook_time = int(input('Please enter the cook time (minutes): '))
-        self.total_time = self.prep_time + self.cook_time
-        self.yieldAmnt = input('Please enter the yield for this recipe: ')
-        self.category = input('Please enter the category for this recipe: ')
-        self.rating = -1 # unrated
-        self.ingredients = getIng()
-        self.directions = getDir()
-        self.source = input('Add a source, or leave blank: ')
-        # self.outputToYaml()
 
     def outputToYaml(self):
         """function that generates a recipe.yaml file from given parameters"""

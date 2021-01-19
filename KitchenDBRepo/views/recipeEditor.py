@@ -1,4 +1,6 @@
-import logging, re
+import logging
+import re
+import json
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
@@ -40,8 +42,11 @@ class recipeEditor(sg.Tab, view):
         if key == "activeRecipe":
             if model.get('activeRecipe') == None:
                 self.clearFields()
+                self.model.set("newRecipe", value=recipe(), notify=False) 
             else:
                 self.fillFields(self.model.get('activeRecipe'))
+                # self.model.set("newRecipe", value=self.model.get(
+                #     'activeRecipe'), notify=False)
         elif key == "active_view":
             if self.model.get("active_view") == "-EDITOR-":
                 self.Select()
@@ -78,11 +83,11 @@ class recipeEditor(sg.Tab, view):
                                 enable_events=True)
         # self.master.expands['x'].append(self.ingTable)
 
-        dir = sg.Multiline(key='-Directions-BOX-', size=(50,10))
+        dir = sg.Multiline(key='-Directions-BOX-', size=(60,10))
         # self.master.expands['xy'].append(dir)
         # self.master.recFields['Directions'] = dir
 
-        ing = sg.Multiline(key='-Ingredients-BOX-', size=(50,10))
+        ing = sg.Multiline(key='-Ingredients-BOX-', size=(60,10))
         # self.master.expands['xy'].append(ing)
         # self.master.recFields['Ingredients'] = ing
 
@@ -127,8 +132,9 @@ class recipeEditor(sg.Tab, view):
                 # data preprocessing, each direction is grouped in three and seperated
                 # with newlines
                 # print(value)
-                value = '\n'.join([f'{a,b,c}' for a,b,c in value])
-                # value = '\n'.join([f'{ing}' for ing in value])
+                # value = '\n'.join([json.dumps(ing) for ing in value])
+                value = '\n'.join([json.dumps(ing) for ing in value])
+
                 value += '\n'
             elif field == "Total Time":
                 continue

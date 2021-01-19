@@ -1,7 +1,11 @@
-from containers.recipe import *
-from containers.menu import *
 import sqlite3 as sql
 import logging
+import json
+import re
+import yaml
+import csv
+# from containers.recipe import recipe
+# from containers.menu import menu
 logger = logging.getLogger('database log')
 
 class database:
@@ -51,8 +55,8 @@ class database:
         res = self.cur.execute(f"SELECT * FROM {table}")
         return [info[0] for info in res.description]
 
-    def dropTable(self, table):
-        self.cur.execute('drop table if exists recipes')
+    def dropTable(self, table="recipes"):
+        self.cur.execute(f'drop table if exists {table}')
         self.conn.commit()
 
     def createTable(self, name='recipes', fields=[]):
@@ -66,6 +70,7 @@ class database:
         self.cur.execute(query)
         self.conn.commit()
 
+    @staticmethod
     def pack(rec):
         # TODO: figure out these conversions
         ing = rec.ingredients

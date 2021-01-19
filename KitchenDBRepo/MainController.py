@@ -1,12 +1,14 @@
-import logging, os.path, json
-from KitchenModel import *
-from DB.database import *
-from containers.recipe import recipe
-from apiCalls import *
-from views import recipeEditor as editor
-from views import recipeTable as tableTab
-from views import recipeViewer as viewer
+import logging
+import os.path
+import json
 import PySimpleGUI as sg
+from KitchenModel import KitchenModel
+# from DB.database import database
+from containers.recipe import recipe
+# from apiCalls import apiCalls
+# from views import recipeEditor as editor
+# from views import recipeTable as tableTab
+# from views import recipeViewer as viewer
 logger = logging.getLogger('MainController Log')
 
 class MainController:
@@ -97,7 +99,7 @@ class MainController:
           ],
           [sg.Button('Close'), sg.Button('Apply')]]
 
-        window = sg.Window('Theme Browser', layout, finalize=True)
+        window = sg.Window('Theme Browser', layout, finalize=True, modal=True)
         window['-LIST-'].update(self.model.get('prefs')['theme'])
         window['-PREF-FOLDER-'].update(self.model.get('prefs')['recipeFolder'])
         window['-DB-LOCATION-'].update(self.model.get('prefs')['dbLocation'])
