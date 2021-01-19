@@ -271,7 +271,9 @@ class recipeEditorController(controller):
 
     def deleteRecipe(self):
         if sg.popup_yes_no("Are you sure you want to delete this recipe?", title="Delete?"):
-            self.model.get('RecipeAPI').deleteRecipe(self.model.window[self.recFields['Title']].get())
+            title = self.model.window[self.recFields['Title']].get()
+            source = self.model.window[self.recFields['Source']].get()
+            self.model.get('RecipeAPI').deleteRecipe(name=title, source=source)
             self.clearFields()
 
     def recipe_modal(self, rec):

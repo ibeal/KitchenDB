@@ -63,7 +63,7 @@ class RecipeAPI(AbstractAPI):
 
     def deleteRecipe(self, rec=None, name="", source=""):
         """Accepts either a name and source, or a recipe in the first slot"""
-        if rec:
+        if isinstance(rec, recipe):
             name = rec.title
             source = rec.source
         logger.debug(f'deleting recipe {name} by {source}')
