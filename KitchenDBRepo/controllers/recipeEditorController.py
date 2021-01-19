@@ -46,6 +46,7 @@ class recipeEditorController(controller):
             # delete recipe and return to table view
             self.deleteRecipe()
             self.model.set('active_view', value='-TABLE-')
+            self.model.notifyOberservers()
             return True
         elif event == '-CLEAR-RECIPE-':
             # self.clearFields()
