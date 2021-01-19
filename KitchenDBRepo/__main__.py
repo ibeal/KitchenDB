@@ -10,6 +10,12 @@ if '-d' in sys.argv:
     # show debug logs
     logging.basicConfig(level=logging.DEBUG)
     logger.debug('Debug mode activated. All debug logs will be shown')
+else:
+    # send debug logs to logfile
+    logging.basicConfig(level=logging.DEBUG,
+                 filename="logfile", filemode="a+")
+    logger.debug('Debug logs send to logfile')
+    
 
 # if '--cli' in sys.argv:
 #     mainCLI.main()
