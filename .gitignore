@@ -2,4 +2,5 @@ build
 dist
 logfile
 *.spec.exe
+*.spec
 logfile
