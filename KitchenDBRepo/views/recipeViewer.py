@@ -3,10 +3,10 @@ import numpy as np
 import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
-from containers.recipe import *
-from KitchenModel import *
+from containers.recipe import recipe
+from KitchenModel import KitchenModel
 from views.view import view
-from controllers.recipeViewerController import *
+from controllers.recipeViewerController import recipeViewerController
 logger = logging.getLogger('recipeViewer log')
 
 class recipeViewer(sg.Tab, view):
@@ -16,11 +16,11 @@ class recipeViewer(sg.Tab, view):
         self.recipeBox = sg.Multiline(key='-VIEWER-BOX-', size=(80,30),
                 tooltip="Recipes will be displayed here when they are selected on the recipe table tab.")
         self.export = sg.Button('Export File', key='-VIEWER-EXPORT-',
-                tooltip="This button causes a prompt to display that will allow you to create a recipe file")
+                tooltip="This button causes a prompt to display that will allow you to create a recipe file", disabled=True)
         self.share = sg.Button('Share', key='-VIEWER-SHARE-', disabled=True,
                 tooltip="This button will allow you to quickly share recipes with friends - Not In Use")
         self.multby = sg.Combo(values=[f'{i}' for i in np.arange(.5,5,.5)], key='-VIEWER-MULTBY-',
-                enable_events=True, default_value='1')
+                enable_events=True, default_value='1', disabled=True)
         layout = [
             [
                  sg.Button('Print', key='-VIEWER-PRINT-', disabled=True,
@@ -28,7 +28,7 @@ class recipeViewer(sg.Tab, view):
                  self.export,
                  self.share,
                  sg.Button('Edit', key='-VIEWER-EDIT-',
-                        tooltip="Click here to edit this recipe"),
+                        tooltip="Click here to edit this recipe", disabled=True),
                 sg.T('Multiply By:'),
                 self.multby
             ],
@@ -44,12 +44,23 @@ class recipeViewer(sg.Tab, view):
         if key == "activeRecipe":
             if self.model.get('activeRecipe') == None:
                 self.clearFields()
+                self.disable()
             else:
                 self.newRecipe(self.model.get('activeRecipe'))
+                self.enable()
         elif key == "active_view":
             if self.model.get("active_view") == "-VIEWER-":
                 self.Select()
 
+    def disable(self):
+        self.multby.update(disabled=True)
+        self.export.update(disabled=True)
+        self.model.window['-VIEWER-EDIT-'].update(disabled=True)
+
+    def enable(self):
+        self.multby.update(disabled=False)
+        self.export.update(disabled=False)
+        self.model.window['-VIEWER-EDIT-'].update(disabled=False)
     # def handle(self, event, values):
     #     if event == '-VIEWER-PRINT-':
     #         if self.model.get('activeRecipe') == None:

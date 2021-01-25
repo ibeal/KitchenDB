@@ -78,6 +78,16 @@ class recipe(data_container):
         self.directions = clone.directions
         self.source = clone.source
 
+    def add_ing(self, ing):
+        self.ingredients.append(ing)
+
+    def remove_ing(self, ing):
+        for i in self.ingredients:
+            if i.id == ing:
+                self.ingredients.remove(i)
+                return
+        # self.ingredients.remove(ing)
+
     def edit(self, data):
         """Function that builds the recipe object from DB entry.
         expects data in this format:

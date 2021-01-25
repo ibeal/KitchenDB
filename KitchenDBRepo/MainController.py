@@ -49,13 +49,13 @@ class MainController:
                 recipe_files = recipe_files.split(';')
                 for file in recipe_files:
                     new_rec = recipe(file=file)
-                    if self.model.get('RecipeAPI').recipeExists(new_rec):
+                    if self.model.get('RecipeAPI').exists(new_rec):
                         if sg.popup_yes_no("This recipe already exists, do you want to overwrite it?", title="Overwrite?"):
                             # save to db
-                            self.model.get('RecipeAPI').deleteRecipe(new_rec)
-                            self.model.get('RecipeAPI').saveRecipe(new_rec)
+                            self.model.get('RecipeAPI').delete(new_rec)
+                            self.model.get('RecipeAPI').save(new_rec)
                     else:
-                        self.model.get('RecipeAPI').saveRecipe(new_rec)
+                        self.model.get('RecipeAPI').save(new_rec)
                 self.model.get('views')['-TABLE-'].Select()
                 self.model.notifyOberservers('recipe import')
                 # self.model.get('views')['-TABLE-'].refreshRecipeTable()

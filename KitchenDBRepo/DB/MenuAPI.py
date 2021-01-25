@@ -12,19 +12,19 @@ class MenuAPI(AbstractAPI):
         self.db = db
         self.db.createTable(name='menus', fields=Menu.dataFields)
 
-    def menuExists(self, menu=None, name=""):
+    def exists(self, menu=None, name=""):
         if menu:
             name = menu.name
         logger.debug(f'checking for menu: {name}')
         res = self.db.cur.execute(f"SELECT * FROM menus WHERE name='{name}'")
         return len(list(res)) > 0
 
-    def menuLookup(self, name='', menu=None):
+    def lookup(self, name='', menu=None):
         if menu:
             name = menu.name
         logger.debug(f'checking for menu: {name}')
         res = self.db.cur.execute(f"SELECT * FROM menus WHERE name='{name}'")
-        ret = Menu.menu(list(res)[0])
+        ret = Menu(list(res)[0])
         ret = self.menuUnpack(ret)
         return ret
 
@@ -38,9 +38,9 @@ class MenuAPI(AbstractAPI):
                 holder = []
                 # TODO: add error checking for missing recipe
                 for rec in val:
-                    temp_rec = self.recAPI.recipeLookup(recID=rec)
+                    temp_rec = self.recAPI.lookup(recID=rec)
                     if temp_rec is None:
-                        temp_rec = self.recAPI.recipeLookup(name=rec.split(recipe.id_delimiter)[0], source=None)
+                        temp_rec = self.recAPI.lookup(name=rec.split(recipe.id_delimiter)[0], source=None)
                     if temp_rec is None:
                         ret.missing_recipes.append(rec)
                         continue
@@ -51,7 +51,7 @@ class MenuAPI(AbstractAPI):
             ret.setDay(dailyMenu(data=v))
         return ret
 
-    def deleteMenu(self, menu=None, name=""):
+    def delete(self, menu=None, name=""):
         if menu:
             name = menu.name
         logger.debug(f'deleting menu: {name}')
@@ -73,9 +73,9 @@ class MenuAPI(AbstractAPI):
             res = self.db.cur.execute(command, ('%'+query+'%',))
         # self.unpack(res)
         # TODO: add unpacking logic here
-        return [Menu.menu(i) for i in res]
+        return [Menu(data=i) for i in res]
 
-    def saveMenu(self, menu, table = 'menus'):
+    def save(self, menu, table = 'menus'):
         # self.db.createTable(table)
         if len(menu.name) <= 0:
                 print('Error saving recipe to db, skipping...')

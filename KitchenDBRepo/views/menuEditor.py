@@ -3,12 +3,12 @@ import PySimpleGUI as sg
 # import PySimpleGUIWeb as sg
 # import PySimpleGUIQt as sg
 # import KitchenGUI.searchBar as searchBar
-from DB.database import *
-from containers.recipe import *
-from apiCalls import *
-from KitchenModel import *
+from DB.database import database
+from containers.recipe import recipe
+from apiCalls import apiCalls
+from KitchenModel import KitchenModel
 from views.view import view
-from controllers.menuEditorController import *
+from controllers.menuEditorController import menuEditorController
 logger = logging.getLogger('menuEditor Log')
 
 class menuEditor(sg.Tab, view):
@@ -51,10 +51,10 @@ class menuEditor(sg.Tab, view):
                  sg.Button('Select Menu', key="-MENU-SELECT-"),
                  sg.Button('Delete Menu', key="-MENU-DELETE-", disabled=True),
                  sg.Button('Shopping List', key="-MENU-SHOPPING-", disabled=True),
-                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-", disabled=True),
                  sg.Button('Save', key="-MENU-SAVE-", disabled=True)],
                 [sg.T('Menu for: '),
-                 sg.Combo(values=[], default_value='', key="-MENU-DAY-", size=(15,1), enable_events=True)],
+                 sg.Combo(values=[], default_value='', key="-MENU-DAY-", size=(15,1), enable_events=True),
+                 sg.Button('Add Recipe', key="-MENU-ADD-RECIPE-", disabled=True)],
                 [menu_table('BREAKFAST', 'Breakfast')],
                 [menu_table("LUNCH", 'Lunch')],
                 [menu_table("DINNER", 'Dinner')],

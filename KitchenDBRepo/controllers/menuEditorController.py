@@ -22,15 +22,16 @@ class menuEditorController(controller):
     def handle(self, event, values):
         if event == "-MENU-SELECT-":
             self.select_menu_modal()
-            self.display_missing_recipes()
+            if self.model.get('activeMenu') != None:
+                self.display_missing_recipes()
             return True
         elif event == "-MENU-SHOPPING-":
             self.model.get('activeMenu').newShoppingList()
             self.shopping_modal()
             return True
         elif event == "-MENU-DELETE-":
-            if self.model.get('MenuAPI').menuExists(self.model.get('activeMenu')):
-                self.model.get('MenuAPI').deleteMenu(self.model.get('activeMenu'))
+            if self.model.get('MenuAPI').exists(self.model.get('activeMenu')):
+                self.model.get('MenuAPI').delete(self.model.get('activeMenu'))
             # self.delete_menu()
             self.model.set('activeMenu', value=None)
             return True
@@ -92,19 +93,19 @@ class menuEditorController(controller):
             logger.debug('A NoneType menu was given to save_menu, aborting...')
             return
 
-        if self.model.get('MenuAPI').menuExists(menu):
-            self.model.get('MenuAPI').deleteMenu(menu)
+        if self.model.get('MenuAPI').exists(menu):
+            self.model.get('MenuAPI').delete(menu)
             if update_name is not None and update_name != menu.getName():
                 menu.name = update_name
             try:
-                self.model.get('MenuAPI').saveMenu(menu)
+                self.model.get('MenuAPI').save(menu)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
                 logger.debug(f"Unexpected error:{sys.exc_info()[0].__str__()}")
                 return
         else:
             try:
-                self.model.get('MenuAPI').saveMenu(menu)
+                self.model.get('MenuAPI').save(menu)
             except:
                 sg.PopupError('Error occured during saving', title='Error')
                 logger.debug(f"Unexpected error:{sys.exc_info()[0].__str__()}")
@@ -157,7 +158,7 @@ class menuEditorController(controller):
                 break
 
             elif event == "-MODAL-ADD-":
-                rec = self.model.get('RecipeAPI').recipeLookup(recID=values[search.sbox_key])
+                rec = self.model.get('RecipeAPI').lookup(recID=values[search.sbox_key])
                 date = self.model.get('activeMenuDay').date
                 group = values['-MODAL-GROUP-']
                 mult = values['-MODAL-MULTBY-']
@@ -202,7 +203,7 @@ class menuEditorController(controller):
                 break
             elif event == "-MODAL-OPEN-":
                 menu = values[search.sbox_key]
-                menu = self.model.get('MenuAPI').menuLookup(menu)
+                menu = self.model.get('MenuAPI').lookup(menu)
                 self.model.set('activeMenu', value=menu)
                 self.model.set('activeMenuDay', value=menu.getDay(0))
                 break

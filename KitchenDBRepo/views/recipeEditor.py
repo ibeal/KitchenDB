@@ -16,17 +16,21 @@ logger = logging.getLogger('recipeEditor log')
 
 class recipeEditor(sg.Tab, view):
     mixed_number = re.compile(r'\s*([\d\\\/\s]+)(.*)')
-    def __init__(self, title, master, *args, ingTableKey = '-OPTION-TABLE-', **kwargs):
+
+    def __init__(self, title, master, *args, ingTableKey='-OPTION-TABLE-', recIngKey='-Ingredients-BOX-', **kwargs):
         self.model = KitchenModel.getInstance()
         self.master = master
         self.ingTableKey = ingTableKey
+        self.recIngKey = recIngKey
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
+        
         super().__init__(title, layout=self.layout_init(), *args, **kwargs)
 
         self.model.addTab("-EDITOR-", self, recipeEditorController(),
             {"recFields":self.recFields,
              "ingTableKey":self.ingTableKey,
-             "ingTable":self.ingTable})
+             "ingTable":self.ingTable,
+             "recIngKey":self.recIngKey})
         # self.model.set("tabData", "-EDITOR-", value={"recFields":self.recFields, "ingTableKey":self.ingTableKey})
         # self.controller = recipeEditorController(self.recFields, self.ingTableKey)
 
@@ -42,14 +46,36 @@ class recipeEditor(sg.Tab, view):
         if key == "activeRecipe":
             if model.get('activeRecipe') == None:
                 self.clearFields()
-                self.model.set("newRecipe", value=recipe(), notify=False) 
+                self.model.set("newRecipe", value=recipe(), notify=False)
+                self.disable()
             else:
                 self.fillFields(self.model.get('activeRecipe'))
-                # self.model.set("newRecipe", value=self.model.get(
-                #     'activeRecipe'), notify=False)
+                self.enable()
+                self.model.set("newRecipe", value=self.model.get(
+                    'activeRecipe'), notify=False)
         elif key == "active_view":
             if self.model.get("active_view") == "-EDITOR-":
                 self.Select()
+        elif key == "newRecipe":
+            self.refreshTable()
+
+    def refreshTable(self):
+        vals = [list(ing.guts().values()) for ing in self.model.get('newRecipe').ingredients]
+        self.ing.update(values=vals)
+
+    def disable(self):
+        self.model.window['-NEW-RECIPE-'].update(disabled=True)
+        self.model.window['-DELETE-RECIPE-'].update(disabled=True)
+        self.model.window['-VIEW-RECIPE-'].update(disabled=True)
+        self.model.window['-SAVE-RECIPE-'].update(disabled=True)
+        # self.model.window[].update(disabled=True)
+
+    def enable(self):
+        self.model.window['-NEW-RECIPE-'].update(disabled=False)
+        self.model.window['-DELETE-RECIPE-'].update(disabled=False)
+        self.model.window['-VIEW-RECIPE-'].update(disabled=False)
+        self.model.window['-SAVE-RECIPE-'].update(disabled=False)
+        # self.model.window[].update(disabled=False)
 
     def layout_init(self):
         simpleFields = [field for field in recipe.pretty_fields]
@@ -87,19 +113,26 @@ class recipeEditor(sg.Tab, view):
         # self.master.expands['xy'].append(dir)
         # self.master.recFields['Directions'] = dir
 
-        ing = sg.Multiline(key='-Ingredients-BOX-', size=(60,10))
+        # ing = sg.Multiline(key='-Ingredients-BOX-', size=(60,10))
+        self.ing = sg.Table([],
+                       headings=['Name', 'ID', 'Amount', 'Units'],
+                       col_widths=[24, 8, 6, 10],
+                       num_rows=10,
+                       auto_size_columns=False,
+                       key=self.recIngKey,
+                       enable_events=True)
         # self.master.expands['xy'].append(ing)
         # self.master.recFields['Ingredients'] = ing
 
-        addbox = [sg.T('Amount'), sg.In(key='-AMOUNT-')]
+        # addbox = [sg.T('Amount'), sg.In(key='-AMOUNT-')]
         # self.master.expands['x'].append(addbox)
         self.search = searchBar.searchBar(key='INGREDIENT', api=self.model.get('RecipeAPI'),
                                           interactive=False)
         layout = [
-                [sg.Button('Clear',key='-CLEAR-RECIPE-'),
-                 sg.Button('Delete Recipe',key='-DELETE-RECIPE-'),
-                 sg.Button('View Recipe', key='-VIEW-RECIPE-'),
-                 sg.Button('Save',key='-SAVE-RECIPE-')],
+                [sg.Button('New',key='-NEW-RECIPE-'),
+                 sg.Button('Delete Recipe',key='-DELETE-RECIPE-', disabled=True),
+                 sg.Button('View Recipe', key='-VIEW-RECIPE-', disabled=True),
+                 sg.Button('Save', key='-SAVE-RECIPE-', disabled=True)],
                 *simpleInputs,
                 [sg.T('Directions')],
                 [dir],
@@ -107,7 +140,7 @@ class recipeEditor(sg.Tab, view):
                 [self.search],
                 [self.ingTable],
                 # [*addbox, sg.Button('Add',key='-ADD-INGREDIENT-')],
-                [ing]
+                [self.ing]
         ]
 
         # col = sg.Column(layout=layout,expand_x=True,expand_y=True,justification='center')
@@ -133,9 +166,13 @@ class recipeEditor(sg.Tab, view):
                 # with newlines
                 # print(value)
                 # value = '\n'.join([json.dumps(ing) for ing in value])
-                value = '\n'.join([json.dumps(ing) for ing in value])
+                # value = '\n'.join([json.dumps(ing) for ing in value])
 
-                value += '\n'
+                # value += '\n'
+                print(value)
+                self.model.window['-Ingredients-BOX-'].update(values=[list(val.values()) for val in value])
+                continue
+
             elif field == "Total Time":
                 continue
             # clear the field

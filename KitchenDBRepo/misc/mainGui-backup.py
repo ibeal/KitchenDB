@@ -53,7 +53,7 @@ class mainGui(tk.Frame):
         resizeSetup(bar, rows=1, cols=3)
         clear = tk.Button(master=bar, text="Clear", command=self.clearFields)
         clear.grid(row=0, column=0, sticky=N+S+W+E)
-        delete = tk.Button(master=bar, text="Delete Recipe", command=self.deleteRecipe)
+        delete = tk.Button(master=bar, text="Delete Recipe", command=self.delete)
         delete.grid(row=0, column=1, sticky=N+E+S+W)
         save = tk.Button(master=bar, text="Save", command=self.saveFields)
         save.grid(row=0, column=2, sticky=N+S+E+W)
@@ -369,13 +369,13 @@ class mainGui(tk.Frame):
         # create the recipe, the list comprehension is to put the dictionary in order
         rec = recipe([res[key] for key in recipe.pretty_fields])
 
-        if self.db.recipeExists(rec.name):
+        if self.db.exists(rec.name):
             if tkmb.askyesno("Overwrite?", "This recipe already exists, do you want to overwrite it?"):
                 # save to db
-                self.db.deleteRecipe(rec)
-                self.db.saveRecipe(rec)
+                self.db.delete(rec)
+                self.db.save(rec)
         else:
-            self.db.saveRecipe(rec)
+            self.db.save(rec)
         self.refreshRecipeTable()
 
     def refreshRecipeTable(self):
@@ -402,9 +402,9 @@ class mainGui(tk.Frame):
         # chop off ing and dirs for display
         self.recTable.updateTable(data, fullData=recs)
 
-    def deleteRecipe(self):
+    def delete(self):
         if tkmb.askyesno("Delete?", "Are you sure you want to delete this recipe?"):
-            self.db.deleteRecipe(self.recFields['Title'].get())
+            self.db.delete(self.recFields['Title'].get())
             self.clearFields()
             self.refreshRecipeTable()
 

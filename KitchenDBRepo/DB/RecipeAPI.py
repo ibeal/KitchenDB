@@ -28,7 +28,7 @@ class RecipeAPI(AbstractAPI):
         res = self.db.cur.execute(f"SELECT * FROM recipes LIMIT {first}, {count}")
         return [recipe(i) for i in res]
 
-    def recipeExists(self, rec=None, name="", source="", recID=None):
+    def exists(self, rec=None, name="", source="", recID=None):
         """Accepts either a name and source, or a recipe in the first slot"""
         if rec:
             name = rec.title
@@ -45,7 +45,7 @@ class RecipeAPI(AbstractAPI):
             res = self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'")
         return len(list(res)) > 0
 
-    def recipeLookup(self, name='', source='', rec=None, recID=None):
+    def lookup(self, name='', source='', rec=None, recID=None):
         """Accepts either a name and source, or a recipe in the third slot"""
         if rec:
             name = rec.title
@@ -61,7 +61,7 @@ class RecipeAPI(AbstractAPI):
             res = list(self.db.cur.execute(f"SELECT * FROM recipes WHERE title='{name}' AND source='{source}'"))
         return recipe(res[0]) if len(res) > 0 else None
 
-    def deleteRecipe(self, rec=None, name="", source=""):
+    def delete(self, rec=None, name="", source=""):
         """Accepts either a name and source, or a recipe in the first slot"""
         if isinstance(rec, recipe):
             name = rec.title
@@ -94,9 +94,9 @@ class RecipeAPI(AbstractAPI):
     def addNew(self, rec):
         # rec = recipe()
         self.db.cur.execute('drop table if exists recipes')
-        self.saveRecipe(rec)
+        self.save(rec)
 
-    def saveRecipe(self, rec, table = 'recipes'):
+    def save(self, rec, table = 'recipes'):
         # self.db.createTable(table)
         if len(rec.title) <= 0:
                 print('Error saving recipe to db, skipping...')
@@ -108,7 +108,7 @@ class RecipeAPI(AbstractAPI):
         # self.db.cur.execute(query)
         data = rec.guts()
         data.pop('Total Time')
-        print(tuple(data.values()))
+        # print(tuple(data.values()))
         # logger.debug('executing: ' + query)
         self.db.cur.execute(f"insert into {table} values (?,?,?,?,?,?,?,?,?)", tuple(data.values()))
         self.db.conn.commit()

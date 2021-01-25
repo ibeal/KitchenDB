@@ -8,6 +8,7 @@ import logging
 # from apiCalls import apiCalls
 from KitchenModel import KitchenModel
 from controllers.controller import controller
+from containers.recipe import recipe
 logger = logging.getLogger('recipeTableController Log')
 
 class recipeTableController(controller):
@@ -44,7 +45,7 @@ class recipeTableController(controller):
             self.searchdb(values['-RECIPE-SBOX-'], sortby=values['-TABLE-SORT-'])
             return True
         elif event == '-ADDNEW-':
-            self.model.set('activeRecipe', value=None)
+            self.model.set('activeRecipe', value=recipe())
             self.model.set('active_view', value='-EDITOR-')
             return True
         return False
