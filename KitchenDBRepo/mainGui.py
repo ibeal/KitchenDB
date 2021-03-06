@@ -15,8 +15,10 @@ logger = logging.getLogger('mainGui Log')
 
 class gui:
 
-    def __init__(self, android=False):
+    def __init__(self, screen_size:tuple, android=False):
         self.android = android
+        self.screen_size = (screen_size[0] // 2, screen_size[1])
+        logger.debug(f'Screen Size will be {self.screen_size}')
         logger.debug('Creating Database and API units for mainGui...')
         self.model = KitchenModel.getInstance()
         # self.model.db = database()
@@ -28,6 +30,8 @@ class gui:
         self.tableData = None
         self.model.set('prefs', value=self.importPrefs(), merge=True)
         sg.theme(self.model.get('prefs')['theme'])
+
+        self.model.set('screen_size', value=self.screen_size)
 
         self.expands = {'x':[], 'y':[], 'xy':[]}
         self.menu_def = [['&File', ['Import Recipe', 'Import Database', '---', 'E&xit'  ]],
@@ -73,7 +77,10 @@ class gui:
             self.window = sg.Window('KitchenDB',
                                     layout,
                                     finalize=True,
-                                    resizable=True)
+                                    resizable=True,
+                                    size=self.screen_size,
+                                    location=(0,0))
+
         self.controller = MainController(self.window)
         self.model.window = self.window
 

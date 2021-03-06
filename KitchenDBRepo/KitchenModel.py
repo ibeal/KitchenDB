@@ -35,6 +35,7 @@ class KitchenModel:
             self.data["activeMenu"] = None
             self.data["activeMenuDay"] = None
             self.data["recipe_table"] = None
+            self.data["screen_size"] = (None, None)
             self.data["views"] = {'-TABS-':None, '-TABLE-':None, '-EDITOR-':None, '-VIEWER-':None, '-MENU-':None, '-INVENTORY-':None}
             self.data["active_view"] = '-TABLE-'
             self.data["state"] = {"lastTableAction": "default"}
