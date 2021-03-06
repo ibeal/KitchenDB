@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 
-import sys, testRealm, logging, mainGui, os
+import sys
+import testRealm
+import logging
+import mainGui
+import os
+from pyautogui import size
 import tkinter
 import KitchenGUI as gui
 
@@ -28,6 +33,6 @@ if '-t' in sys.argv:
     exit(0)
 
 mainGui.main(
-    screen_size=(1440,900),
+    screen_size=size(),
     android=bool('ANDROID_ROOT' in os.environ)
 )
