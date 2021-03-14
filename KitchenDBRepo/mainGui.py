@@ -26,7 +26,7 @@ class gui:
 
         logger.debug('Setting configuations...')
         self.recFields = {field: f'-{field}-BOX-' for field in recipe.pretty_fields}
-        self.recTableDim = (20,6)
+        self.recTableDim = (58, 6)
         self.tableData = None
         self.model.set('prefs', value=self.importPrefs(), merge=True)
         sg.theme(self.model.get('prefs')['theme'])
