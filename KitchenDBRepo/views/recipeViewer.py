@@ -14,7 +14,8 @@ class recipeViewer(sg.Tab, view):
         self.master = master
         self.model = KitchenModel.getInstance()
         self.screen_size = self.model.get('screen_size')
-        self.recipeBox = sg.Multiline(key='-VIEWER-BOX-', size=(round(self.screen_size[0]* .155), round(self.screen_size[1] * 0.05)),
+        #We are going to hard code the height, but the width should adjust to each screen
+        self.recipeBox = sg.Multiline(key='-VIEWER-BOX-', size=(round(self.screen_size[0]* .075) + 56, 45),
                 tooltip="Recipes will be displayed here when they are selected on the recipe table tab.")
         self.export = sg.Button('Export File', key='-VIEWER-EXPORT-',
                 tooltip="This button causes a prompt to display that will allow you to create a recipe file", disabled=True)
