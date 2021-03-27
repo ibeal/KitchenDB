@@ -56,8 +56,8 @@ class ingredient:
             self.amount = data[2]
             self.unit = data[3]
         elif isinstance(data, str):
-            print(data)
-            print(json.loads(data))
+            # print(data)
+            # print(json.loads(data))
             self.edit(json.loads(data))
         else:
             logger.debug('Unknown datatype recieved')

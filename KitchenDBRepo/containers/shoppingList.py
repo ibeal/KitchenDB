@@ -10,7 +10,7 @@ class shoppingList:
     def __str__(self):
         s = ''
         for ing in self.ingredients:
-            s += f' -- {ing[2]} of {ing[0]}\n'
+            s += f' -- {ing.__str__()}\n'
         return s
 
     def add_ingredients(self, *args):
