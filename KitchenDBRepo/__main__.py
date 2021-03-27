@@ -35,6 +35,6 @@ if '-t' in sys.argv:
 if __name__ == '__main__':
     mainGui.main(
         screen_size=size(),
-        android=bool('ANDROID_ROOT' in os.environ),
-        mac=bool(os.uname().sysname == 'Darwin')
+        android=bool('ANDROID_ROOT' in os.environ)
+        # mac=bool(os.uname().sysname == 'Darwin')
     )
