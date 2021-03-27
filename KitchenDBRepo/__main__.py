@@ -32,7 +32,8 @@ if '-t' in sys.argv:
     testRealm.main()
     exit(0)
 
-mainGui.main(
-    screen_size=size(),
-    android=bool('ANDROID_ROOT' in os.environ)
-)
+if __name__ == '__main__':
+    mainGui.main(
+        screen_size=size(),
+        android=bool('ANDROID_ROOT' in os.environ)
+    )
