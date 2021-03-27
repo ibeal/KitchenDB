@@ -15,7 +15,7 @@ logger = logging.getLogger('mainGui Log')
 
 class gui:
 
-    def __init__(self, screen_size:tuple, android=False):
+    def __init__(self, screen_size:tuple, android=False, mac=False):
         self.android = android
         self.screen_size = (screen_size[0] // 2, screen_size[1])
         logger.debug(f'Screen Size will be {self.screen_size}')
@@ -73,6 +73,14 @@ class gui:
                                     finalize=True,
                                     size=(800,1280),
                                     location=(0,0))
+        elif mac:
+            self.window = sg.Window('KitchenDB',
+                                    layout,
+                                    finalize=True,
+                                    resizable=True,
+                                    size=self.screen_size,
+                                    location=(0, 0),
+                                    use_ttk_buttons=True)
         else:
             self.window = sg.Window('KitchenDB',
                                     layout,
