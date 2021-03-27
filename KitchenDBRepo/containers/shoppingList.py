@@ -40,7 +40,7 @@ class shoppingList:
             return
         for arg in args:
             # if the argument is a recipe add each ingredient from the recipe
-            if isinstance(arg, recipe):
+            if isinstance(arg, rc.recipe):
                 for ing in arg.ingredients:
                     try:
                         self.ingredients.remove(ing)
