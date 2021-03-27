@@ -31,14 +31,22 @@ class recipeEditorController(controller):
     def handle(self, event, values):
         if event =='-VIEW-RECIPE-':
             # recipe is saved then sent to viewer
-            self.saveFields()
+            try:    
+                self.saveFields()
+            except:
+                sg.PopupError('Check to make sure you have valid title')
+                return True
             # self.recipe_modal(self.getFields())
             rec = self.getFields()
             self.model.set('activeRecipe', value=rec)
             self.model.set('active_view', value='-VIEWER-')
             return True
         elif event == '-SAVE-RECIPE-':
-            self.saveFields()
+            try:    
+                self.saveFields()
+            except:
+                sg.PopupError('Check to make sure you have valid title')
+                return True
             return True
         elif event == '-DELETE-RECIPE-':
             if self.model.get('activeRecipe') == None:
@@ -250,6 +258,9 @@ class recipeEditorController(controller):
         """
         rec = self.getFields()
         
+        if len(rec.title) <= 0:
+            raise Exception("No Title!!!!")           
+
         if rec is None:
             logger.debug('A NoneType recipe was returned from getfields, aborting saveFields...')
             return

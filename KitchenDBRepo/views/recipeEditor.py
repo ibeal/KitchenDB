@@ -187,7 +187,10 @@ class recipeEditor(sg.Tab, view):
             if field == "Total Time":
                 continue
             # clear the field
-            self.model.window[self.recFields[field]].update(value='')
+            elif field == "Ingredients":
+                self.model.window[self.recFields[field]].update(values='')
+            else:
+                self.model.window[self.recFields[field]].update(value='')
 
     def recipe_modal(self, rec):
         sg.popup(rec.__str__());
