@@ -2,7 +2,7 @@ altgraph==0.17
 appdirs==1.4.4
 astroid==2.4.0
 autopep8==1.5.2
-certifi==2020.4.5.1
+certifi==2022.12.7
 chardet==3.0.4
 click==7.1.2
 colorama==0.4.3
